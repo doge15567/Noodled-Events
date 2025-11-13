@@ -34,6 +34,11 @@ public class CommonsCookBook : CookBook
             inputs: () => new[] { new Pin("", typeof(object)) },
             outputs: () => new[] { new Pin("", typeof(object)) },
             bookTag: "data_redirect"));
+
+        allDefs.Add(new NodeDef(this, "data.jank-redirect",
+            inputs: () => new[] { new Pin("", typeof(object)) },
+            outputs: () => new[] { new Pin("", typeof(object)) },
+            bookTag: "data_jankredirect"));
         #endregion
 
         #region FLOAT MATH
@@ -1404,6 +1409,7 @@ public class CommonsCookBook : CookBook
     public override void PostCompile(SerializedBowl bowl)
     {
         handleSceneVars(bowl);
+        handleJankRedirect(bowl);
     }
     private void handleSceneVars(SerializedBowl bowl)
     {
@@ -1622,6 +1628,64 @@ public class CommonsCookBook : CookBook
         bowl.Event.PersistentCallsList.Add(sact);
         bowl.Event.PersistentCallsList.Add(new PersistentCall(typeof(UltEventHolder).GetMethod("Invoke", new Type[] { }), movedEntryEvt));
     }
+    private void handleJankRedirect(SerializedBowl bowl)
+    {
+        List<SerializedNode> nodes = new List<SerializedNode>();
+        foreach (var node in bowl.NodeDatas)
+            if (node.Book == this && node.BookTag == "data_jankredirect")
+            {
+                nodes.Add(node);
+            }
+        foreach (var redirect in nodes) 
+        {
+            var sourceNode = redirect.DataInputs[0].Source.Node;
+            var sourceCall = redirect.DataInputs[0].Source.CompCall;
+            var sourceEvent = redirect.DataInputs[0].Source.CompEvt;
+
+            var requesterNode = redirect.DataOutputs[0].Targets[0].Node;
+            var requesterCall = redirect.DataOutputs[0].Targets[0].CompCall;
+            var requestorArgIdx = redirect.DataOutputs[0].Targets[0].CompArg;
+            var requesterEvent = redirect.DataOutputs[0].Targets[0].CompEvt;
+
+            Debug.Log(sourceNode.Name); // obj
+            Debug.Log(sourceCall); // null
+            Debug.Log(sourceEvent); // null
+
+            Debug.Log(requesterNode.Name); // obj
+            Debug.Log(requesterCall); // obj
+            Debug.Log(requestorArgIdx); // obj (-1)
+            Debug.Log(requesterEvent); // obj
+
+            Debug.Log(sourceEvent.PersistentCallsList);
+
+            //POC with just one if event assumed
+
+            // true 5
+            // false 3
+
+            var distFromEnd = -(sourceEvent.PersistentCallsList.Count - (sourceEvent.PersistentCallsList.IndexOf(requesterCall) + 1));
+
+            bool ifBranch = false; // implement logic for detection
+
+            if (ifBranch)
+                distFromEnd += 6;
+            else 
+                distFromEnd += 4;
+
+            requesterCall.PersistentArguments[0].ToRetVal(distFromEnd, typeof(object));
+
+            //SerializedNode itr = requesterNode;
+
+            //int callDistance;
+
+            //while(itr != sourceNode && itr != null)
+            //{
+            //    itr.
+            //}
+
+        }
+    }
+
     [SerializeField] GameObject VarEnsurer;
 }
 #endif

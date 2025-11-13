@@ -170,7 +170,7 @@ public static class UltNoodleRuntimeExtensions
             else nod.AddDataOut(@out.Name, @out.Type);
         }
 
-        if (def.BookTag == "flow_redirect" || def.BookTag == "data_redirect")
+        if (def.BookTag == "flow_redirect" || def.BookTag == "data_redirect" || def.BookTag == "data_jankredirect")
             nod.NoadType = SerializedNode.NodeType.Redirect;
 
         return nod;

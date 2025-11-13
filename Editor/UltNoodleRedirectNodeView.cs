@@ -68,6 +68,14 @@ public class UltNoodleRedirectNodeView : UltNoodleNodeView
 
     private void CreateDataPorts()
     {
+        if (Node.BookTag == "data_jankredirect")
+        {
+            //5A00FF at 27/255 alpha
+            var color = new StyleColor(new Color32(0x5A, 0x00, 0xFF, 27));
+            inputContainer.style.backgroundColor = color;
+            outputContainer.style.backgroundColor = color;
+        }
+
         foreach (var di in Node.DataInputs)
         {
             var port = InstantiatePort(

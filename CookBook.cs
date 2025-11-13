@@ -135,6 +135,7 @@ namespace NoodledEvents
             {
                 TargEvent = targEvt; TargCall = targCall;
                 TargInwardType = targCall.Method.GetParameters()[argIdx].ParameterType; TargInput = argIdx;
+                if (o.Node.BookTag == "data_jankredirect") isJankDataTransfer = true;
                 if (o.Node.NoadType == SerializedNode.NodeType.Redirect) // Handle redirect nodes /// From CookBook.CompileNode
                 {
                     SerializedNode secondtolast = null;
@@ -191,6 +192,7 @@ namespace NoodledEvents
             // these remains are pretty uncommon, i'll implement them later
             */
 
+            public bool isJankDataTransfer;
             public int ArgIsSource; // if this is from an arg (-1 means no >= 0 gives arg idx)
             public UltEventBase SourceEvent;
             public PersistentCall SourceCall;
@@ -202,6 +204,13 @@ namespace NoodledEvents
             public int TargInput; // the idx of the arg on the TargCall to set as Arg
             public void Connect(Transform dataRoot) // fyi this is called while the targcall is being constructed
             {
+                if (isJankDataTransfer)
+                {
+                    // jank data transfer is jank for powerusers, it isnt here if it shouldnt be used
+                    TargCall.PersistentArguments[TargInput] = new PersistentArgument().ToObjVal(null, TargInwardType);
+                    return;
+                }
+
                 if (SourceEvent == null) 
                 {
                     // People dont typically have warnings on in the log
