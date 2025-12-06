@@ -340,41 +340,9 @@ public class CommonsCookBook : CookBook
         switch (node.BookTag)
         {
             case "wait":
-                // first, we need to figure what data needs transfer
-                // i mean do we? PendingConnection handles this shit
-                /*
-                List<NoodleDataOutput> transfz = new List<NoodleDataOutput>();
-                bool IsBeforeWait(SerializedNode node)
-                {
-                    // if next node is Wait, ret true
-                    foreach (var flow in node.FlowOutputs)
-                    {
-                        if (flow.Target != null && flow.Target.Node == node)
-                            return true;
-                    }
-                    // else, run above again for next nodes
-                    // if next node finds it, ret true
-                    // else false
-                    foreach (var flow in node.FlowOutputs)
-                    {
-                        if (flow.Target != null && IsBeforeWait(flow.Target.Node))
-                            return true;
-                    }
-                    return false;
-                }
-                foreach (var descendent in node.GatherDescendants())
-                    foreach (var postWaitInput in descendent.DataInputs)
-                        if (postWaitInput.Source != null && IsBeforeWait(postWaitInput.Source.Node))
-                            transfz.Add(postWaitInput.Source);
-
-                transfz.Distinct();*/
 
                 // just make the evts and proceed under the root.
 
-
-                var immediateNext = node.FlowOutputs[0].Target?.Node;
-                if (immediateNext != null)
-                    immediateNext.Book.CompileNode(evt, immediateNext, dataRoot);
 
                 var slowNext = node.FlowOutputs[1].Target?.Node;
                 if (slowNext != null)
@@ -399,53 +367,59 @@ public class CommonsCookBook : CookBook
                         evt.PersistentCallsList.Add(startDelay2);
 
                         slowNext.Book.CompileNode(asyncEvt.Event, slowNext, asyncEvt.transform);
-                        return;
                     }
-
-                    Transform ats = dataRoot.Find("async templates");
-                    if (!ats) ats = dataRoot.StoreTransform("async templates");
-
-
-                    // okay so like this is supposed to be async
-                    // new, copied on run dataroot:
-                    var slowDataRoot = ats.StoreComp<LifeCycleEvents>("Async DataRoot");
-                    slowDataRoot.gameObject.SetActive(true); // so OnEnabled runs when cloned
-                    slowDataRoot.EnableEvent.EnsurePCallList();
-                    slowDataRoot.gameObject.AddComponent<LifeCycleEvtEditorRunner>();
-
-                    var delayedEvt = slowDataRoot.gameObject.AddComponent<DelayedUltEventHolder>();
-                    delayedEvt.Event.EnsurePCallList();
-
-                    var startDelay = new PersistentCall(typeof(DelayedUltEventHolder).GetMethod("Invoke", new Type[] { }), delayedEvt);
-                    slowDataRoot.EnableEvent.PersistentCallsList.Add(startDelay);
-
-                    slowNext.Book.CompileNode(delayedEvt.Event, slowNext, slowDataRoot.transform);
-
-                    // okay now we just need to insert cloning pcalls to original evt!
-                    // since PendingConnection naturally put compstoragers under slowDataRoot.transform :3
-
-                    // delay pin in functionality
-                    if (node.DataInputs[0].Source == null) delayedEvt.Delay = node.DataInputs[0].DefaultFloatValue;
                     else
                     {
-                        var setTimer = new PersistentCall(typeof(DelayedUltEventHolder).GetProperty("Delay").SetMethod, delayedEvt);
-                        new PendingConnection(node.DataInputs[0].Source, evt, setTimer, 0).Connect(dataRoot);
-                        evt.PersistentCallsList.Add(setTimer);
+                        Transform ats = dataRoot.Find("async templates");
+                        if (!ats) ats = dataRoot.StoreTransform("async templates");
+
+
+                        // okay so like this is supposed to be async
+                        // new, copied on run dataroot:
+                        var slowDataRoot = ats.StoreComp<LifeCycleEvents>("Async DataRoot");
+                        slowDataRoot.gameObject.SetActive(true); // so OnEnabled runs when cloned
+                        slowDataRoot.EnableEvent.EnsurePCallList();
+                        slowDataRoot.gameObject.AddComponent<LifeCycleEvtEditorRunner>();
+
+                        var delayedEvt = slowDataRoot.gameObject.AddComponent<DelayedUltEventHolder>();
+                        delayedEvt.Event.EnsurePCallList();
+
+                        var startDelay = new PersistentCall(typeof(DelayedUltEventHolder).GetMethod("Invoke", new Type[] { }), delayedEvt);
+                        slowDataRoot.EnableEvent.PersistentCallsList.Add(startDelay);
+
+                        slowNext.Book.CompileNode(delayedEvt.Event, slowNext, slowDataRoot.transform);
+
+                        // okay now we just need to insert cloning pcalls to original evt!
+                        // since PendingConnection naturally put compstoragers under slowDataRoot.transform :3
+
+                        // delay pin in functionality
+                        if (node.DataInputs[0].Source == null) delayedEvt.Delay = node.DataInputs[0].DefaultFloatValue;
+                        else
+                        {
+                            var setTimer = new PersistentCall(typeof(DelayedUltEventHolder).GetProperty("Delay").SetMethod, delayedEvt);
+                            new PendingConnection(node.DataInputs[0].Source, evt, setTimer, 0).Connect(dataRoot);
+                            evt.PersistentCallsList.Add(setTimer);
+                        }
+
+                        // cloning bs
+                        var cloneCall = new PersistentCall(typeof(UnityEngine.Object).GetMethod("Instantiate", new Type[] { typeof(UnityEngine.Object), typeof(Transform) }), null);
+                        cloneCall.PersistentArguments[0].FSetString(typeof(UnityEngine.Object).AssemblyQualifiedName).FSetType(PersistentArgumentType.Object).Object = slowDataRoot.gameObject;
+                        cloneCall.PersistentArguments[1].FSetString(typeof(UnityEngine.Transform).AssemblyQualifiedName).FSetType(PersistentArgumentType.Object);
+                        evt.PersistentCallsList.Add(cloneCall);
+
+                        // cleanup
+                        var delCall = new PersistentCall(typeof(UnityEngine.Object).GetMethod("DestroyImmediate", new Type[] { typeof(UnityEngine.Object) }), null);
+                        delCall.PersistentArguments[0].FSetType(PersistentArgumentType.Object).Object = slowDataRoot.gameObject;
+                        delayedEvt.Event.PersistentCallsList.Add(delCall);
                     }
-
-                    // cloning bs
-                    var cloneCall = new PersistentCall(typeof(UnityEngine.Object).GetMethod("Instantiate", new Type[] { typeof(UnityEngine.Object), typeof(Transform) }), null);
-                    cloneCall.PersistentArguments[0].FSetString(typeof(UnityEngine.Object).AssemblyQualifiedName).FSetType(PersistentArgumentType.Object).Object = slowDataRoot.gameObject;
-                    cloneCall.PersistentArguments[1].FSetString(typeof(UnityEngine.Transform).AssemblyQualifiedName).FSetType(PersistentArgumentType.Object);
-                    evt.PersistentCallsList.Add(cloneCall);
-
-                    // cleanup
-                    var delCall = new PersistentCall(typeof(UnityEngine.Object).GetMethod("DestroyImmediate", new Type[] { typeof(UnityEngine.Object) }), null);
-                    delCall.PersistentArguments[0].FSetType(PersistentArgumentType.Object).Object = slowDataRoot.gameObject;
-                    delayedEvt.Event.PersistentCallsList.Add(delCall);
-
                     // i can't believe how easy this one was
                 }
+
+
+                var onStartNext = node.FlowOutputs[0].Target?.Node;
+                if (onStartNext != null)
+                    onStartNext.Book.CompileNode(evt, onStartNext, dataRoot);
+
                 return;
             case "if":
                 // if statementtt :/
