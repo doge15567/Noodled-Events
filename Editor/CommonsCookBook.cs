@@ -23,6 +23,12 @@ public class CommonsCookBook : CookBook
             outputs: () => new[] { new Pin("true"), new Pin("false") },
             bookTag: "if"));
 
+        // flow.trycatch
+        allDefs.Add(new NodeDef(this, "flow.try_finally",
+            inputs: () => new[] { new Pin("Exec") },
+            outputs: () => new[] { new Pin("finally"), new Pin("try") },
+            bookTag: "flow_tryfinally"));
+
         // flow.redirect
         allDefs.Add(new NodeDef(this, "flow.redirect",
             inputs: () => new[] { new Pin("") },
@@ -948,6 +954,25 @@ public class CommonsCookBook : CookBook
                         nextNode.Book.CompileNode(evt, nextNode, dataRoot);
                 }
                 break;
+            case "flow_tryfinally":
+                {
+                    var tryLCE = dataRoot.StoreComp<LifeCycleEvents>("try");
+                    tryLCE.gameObject.AddComponent<LifeCycleEvtEditorRunner>();
+                    tryLCE.EnableEvent = new();
+                    tryLCE.EnableEvent.EnsurePCallList();
+
+                    evt.PersistentCallsList.Add(MakeCall<GameObject>("SetActive", tryLCE.gameObject, true));
+                    evt.PersistentCallsList.Add(MakeCall<GameObject>("SetActive", tryLCE.gameObject, false));
+
+                    var next = node.FlowOutputs[0];
+                    if (next.Target != null)
+                        next.Target.Node.Book.CompileNode(evt, next.Target.Node, dataRoot);
+                    next = node.FlowOutputs[1];
+                    if (next.Target != null)
+                        next.Target.Node.Book.CompileNode(tryLCE.EnableEvent, next.Target.Node, dataRoot);
+
+                    break;
+                }
             default:
                 if (node.BookTag.Contains("_scene_") && node.BookTag.EndsWith("_var"))
                 {

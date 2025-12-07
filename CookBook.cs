@@ -121,6 +121,19 @@ namespace NoodledEvents
             => new PersistentCall(typeof(T).GetMethod(method, UltEventUtils.AnyAccessBindings, null, ts, null), obj);
         public static PersistentCall MakeCall<T>(string method, UnityEngine.Object obj = null)
             => new PersistentCall(typeof(T).GetMethod(method, UltEventUtils.AnyAccessBindings), obj);
+        public static PersistentCall MakeCall<T>(string method, UnityEngine.Object obj = null, params object[] args)
+        {
+            Type[] ts = new Type[args.Length];
+            for (int i = 0; i < args.Length; i++)
+                ts[i] = args[i].GetType();
+            
+            var call = new PersistentCall(typeof(T).GetMethod(method, UltEventUtils.AnyAccessBindings, null, ts, null), obj);
+           
+            for (int i = 0; i < args.Length; i++)
+                call.PersistentArguments[i].Value = args[i];
+
+            return call;
+        }
 
         public class PendingConnection // utility class to link pcalls, with support for cross-event data transfer
         { 

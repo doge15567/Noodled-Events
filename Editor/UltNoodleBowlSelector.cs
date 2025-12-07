@@ -34,6 +34,11 @@ public class UltNoodleBowlSelector : VisualElement
 
         foreach (var bowl in _editor.Bowls)
         {
+            if (bowl == null)
+                continue;
+            if (bowl.SerializedData == null)
+                continue;
+
             bool isSelected = bowl == _editor.CurrentBowl;
 
             var box = new VisualElement();
