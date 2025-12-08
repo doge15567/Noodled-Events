@@ -15,7 +15,7 @@ namespace NoodledEvents
             foreach (var bowlData in holder.GetComponents<SerializedBowl>())
                 if (bowlData.EventHolder == holder && bowlData.EventFieldPath == eventFieldPath)
                     return bowlData;
-            
+
             // needs bowl
             return SerializedBowl.Create(holder, fieldType, eventFieldPath);
         }
@@ -31,7 +31,7 @@ namespace NoodledEvents
         {
             if (!typeof(UltEventBase).IsAssignableFrom(evtType)) return new Type[0];
             List<Type> types = new List<Type>();
-            while(evtType != typeof(UltEventBase))
+            while (evtType != typeof(UltEventBase))
             {
                 //foreach (var item in evtType.GetGenericArguments())
                 //{
@@ -45,7 +45,7 @@ namespace NoodledEvents
 
         public static PersistentArgumentType GetPCallType(this NoodleDataInput @in)
         {
-            if (@in.Type == typeof(object)) 
+            if (@in.Type == typeof(object))
                 return @in.ConstInput;
             else
             {
@@ -93,7 +93,7 @@ namespace NoodledEvents
                     }
                 }
             }*/
-            
+
             //EditorUtility.DisplayProgressBar("Finding Types...", "", 0);
             var assembs = AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.FullName.StartsWith("UnityEditor"));
             //string tlist = "";

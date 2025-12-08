@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using UltEvents;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace NoodledEvents
 {
@@ -72,7 +71,7 @@ namespace NoodledEvents
             Position = Vector2.zero;
 
             FieldInfo evtField = bowl.BowlEvtHolderType.Type.GetField(bowl.EventFieldPath, UltEventUtils.AnyAccessBindings);
-            
+
             FlowOutputs = new[] { new NoodleFlowOutput(this) };
             FlowInputs = new NoodleFlowInput[0];
             DataInputs = new NoodleDataInput[0];
@@ -200,7 +199,7 @@ namespace NoodledEvents
             foreach (var fo in FlowOutputs)
                 fo.Node = this;
             foreach (var di in DataInputs)
-                di.Node = this; 
+                di.Node = this;
             foreach (var @do in DataOutputs)
                 @do.Node = this;
 
@@ -465,7 +464,7 @@ namespace NoodledEvents
     {
         public NoodleFlowInput(SerializedNode node) => Node = node;
         public string Name = "";
-        
+
         [NonSerialized] public SerializedNode Node;
         [NonSerialized] public List<NoodleFlowOutput> Sources = new();
         [SerializeField] public string[] SourcesIds;
@@ -473,7 +472,7 @@ namespace NoodledEvents
         [SerializeField] public string ID = Guid.NewGuid().ToString();
 
         public void Connect(NoodleFlowOutput output) => output.Connect(this);
-        
+
     }
     [Serializable]
     public class NoodleFlowOutput // has 1 output

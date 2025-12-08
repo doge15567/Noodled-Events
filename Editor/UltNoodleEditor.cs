@@ -16,7 +16,6 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
-using static PlasticPipe.PlasticProtocol.Messages.NegotiationCommand;
 
 public class UltNoodleEditor : EditorWindow
 {
@@ -58,7 +57,7 @@ public class UltNoodleEditor : EditorWindow
     }
 
     public UltNoodleTreeView TreeView => treeView;
-    
+
     private UltNoodleTreeView treeView;
     private UltNoodleInspectorView inspectorView;
     private UltNoodleBowlSelector bowlSelector;
@@ -124,17 +123,17 @@ public class UltNoodleEditor : EditorWindow
             _bowlToReselect = !enabled || Selection.activeGameObject == _currentBowl?.SerializedData?.gameObject
                 ? _currentBowl?.SerializedData
                 : null; // only reselect if we're disabling the toggle or the current bowl's gameobject is selected
-            
+
             ResetViews();
             OnFocus(); // update displays
         }, (a) => EditorPrefs.GetBool("SelectedBowlsOnly", true) ? DropdownMenuAction.Status.Checked : DropdownMenuAction.Status.Normal);
         viewMenu.menu.AppendAction("Rebuild View", (a) => contextChanged(), (a) => DropdownMenuAction.Status.Normal);
 
-        compilationMenu.menu.AppendAction("Add Debug Logs", (_) => 
-            UltNoodleRuntimeExtensions.DEBUG_IN_COMP = !UltNoodleRuntimeExtensions.DEBUG_IN_COMP, 
+        compilationMenu.menu.AppendAction("Add Debug Logs", (_) =>
+            UltNoodleRuntimeExtensions.DEBUG_IN_COMP = !UltNoodleRuntimeExtensions.DEBUG_IN_COMP,
             (_) => UltNoodleRuntimeExtensions.DEBUG_IN_COMP ? DropdownMenuAction.Status.Checked : DropdownMenuAction.Status.Normal);
 
-        compilationMenu.menu.AppendAction("Use Inline Ultswaps", (_) => 
+        compilationMenu.menu.AppendAction("Use Inline Ultswaps", (_) =>
         {
             bool enabled = !EditorPrefs.GetBool("InlineUltswaps");
             EditorPrefs.SetBool("InlineUltswaps", enabled);
@@ -198,7 +197,7 @@ public class UltNoodleEditor : EditorWindow
 
     private Label LoadingText;
     private static bool _collecting;
-    
+
     private static Type[] s_tps;
     public static Type[] SearchableTypes
     {
@@ -467,7 +466,7 @@ public class UltNoodleEditor : EditorWindow
 
     [MenuItem("GameObject/Instant Noodles/UltEventHolder Bowl", true)] static bool vin1(MenuCommand command) => command.context ? !PrefabUtility.IsPartOfAnyPrefab(command.context) : true;
     [MenuItem("GameObject/Instant Noodles/UltEventHolder Bowl")]
-    static void UltEventHolderInstantNoodle(MenuCommand menuCommand) 
+    static void UltEventHolderInstantNoodle(MenuCommand menuCommand)
         => InstantInstantNoodle(menuCommand.context as GameObject, typeof(UltEventHolder), "_Event");
     [MenuItem("GameObject/Instant Noodles/DelayedUltEventHolder Bowl")]
     static void DelayedUltEventHolderInstantNoodle(MenuCommand menuCommand)
@@ -493,7 +492,7 @@ public class UltNoodleEditor : EditorWindow
         var targ = command.context as LifeCycleEvents;
         if (Editor == null) OpenWindow();
         Editor.NewBowl(targ, new SerializedType(typeof(LifeCycleEvents)), "_AwakeEvent");
-        
+
     }
     [MenuItem("CONTEXT/LifeCycleEvents/Noodle Bowl/Start()", true)] static bool v4(MenuCommand command) => !PrefabUtility.IsPartOfAnyPrefab(command.context);
     [MenuItem("CONTEXT/LifeCycleEvents/Noodle Bowl/Start()")]
@@ -517,9 +516,9 @@ public class UltNoodleEditor : EditorWindow
     {
         var targ = command.context as LifeCycleEvents;
         if (Editor == null) OpenWindow();
-        Editor.NewBowl(targ, new SerializedType(typeof(LifeCycleEvents)), "_DisableEvent");    
+        Editor.NewBowl(targ, new SerializedType(typeof(LifeCycleEvents)), "_DisableEvent");
     }
-    
+
     [MenuItem("CONTEXT/LifeCycleEvents/Noodle Bowl/Destroy()", true)] static bool v7(MenuCommand command) => !PrefabUtility.IsPartOfAnyPrefab(command.context);
     [MenuItem("CONTEXT/LifeCycleEvents/Noodle Bowl/Destroy()")]
     static void LifeCycleEvents_DestroyEvent(MenuCommand command)
@@ -527,7 +526,7 @@ public class UltNoodleEditor : EditorWindow
         var targ = command.context as LifeCycleEvents;
         if (Editor == null) OpenWindow();
         Editor.NewBowl(targ, new SerializedType(typeof(LifeCycleEvents)), "_DestroyEvent");
-        
+
     }
     [MenuItem("CONTEXT/UpdateEvents/Noodle Bowl/Update()", true)] static bool v8(MenuCommand command) => !PrefabUtility.IsPartOfAnyPrefab(command.context);
     [MenuItem("CONTEXT/UpdateEvents/Noodle Bowl/Update()")]
@@ -542,8 +541,8 @@ public class UltNoodleEditor : EditorWindow
     static void UpdateEvents_LateUpdateEvent(MenuCommand command)
     {
         var targ = command.context as UpdateEvents;
-            if (Editor == null) OpenWindow();
-            Editor.NewBowl(targ, new SerializedType(typeof(UpdateEvents)), "_LateUpdateEvent");
+        if (Editor == null) OpenWindow();
+        Editor.NewBowl(targ, new SerializedType(typeof(UpdateEvents)), "_LateUpdateEvent");
     }
     [MenuItem("CONTEXT/UpdateEvents/Noodle Bowl/Fixed Update()", true)] static bool v10(MenuCommand command) => !PrefabUtility.IsPartOfAnyPrefab(command.context);
     [MenuItem("CONTEXT/UpdateEvents/Noodle Bowl/Fixed Update()")]

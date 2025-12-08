@@ -9,7 +9,7 @@ namespace NoodledEvents
     [Serializable]
     public class SerializedField
     {
-        public FieldInfo Field 
+        public FieldInfo Field
         {
             get => f ??= Type.GetType(_assemblyTypeName).GetField(_fieldName, UltEventUtils.AnyAccessBindings);
             set

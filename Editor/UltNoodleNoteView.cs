@@ -1,10 +1,10 @@
 #if UNITY_EDITOR
+using NoodledEvents;
 using System;
+using UnityEditor;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEditor.Experimental.GraphView;
-using UnityEditor;
-using NoodledEvents;
 
 public class UltNoodleNoteView : GraphElement
 {

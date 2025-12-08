@@ -10,7 +10,7 @@ namespace NoodledEvents
     [Serializable]
     public class SerializedMethod
     {
-        public MethodBase Method 
+        public MethodBase Method
         {
             get => m ??= _assemblyMethodName.ToMethod(Parameters.Select(p => p.Type).ToArray());
             set
@@ -21,7 +21,7 @@ namespace NoodledEvents
             }
         }
         public MethodBase RawMethod => m;
-        
+
         private MethodBase m;
         [SerializeField] string _assemblyMethodName;
         [SerializeField] public SerializedType[] Parameters;

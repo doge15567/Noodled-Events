@@ -53,24 +53,24 @@ public class LoopsCookBook : CookBook
         switch (node.BookTag)
         {
             case "while":
-            { 
-                // this is just a point in execution that gets called by the continue node.
-                // so just a seperate ult-event
-                var loopRoot = dataRoot.StoreTransform("While");
-                loopRoot.gameObject.SetActive(true);
-                var loopEvt = loopRoot.StoreComp<UltEventHolder>("Loop)#)#)");
-                loopEvt.gameObject.SetActive(true);
-                loopEvt.Event.FSetPCalls(new());
-                var doneEvt = loopRoot.StoreComp<UltEventHolder>("Done");
-                doneEvt.gameObject.SetActive(true);
-                doneEvt.Event.FSetPCalls(new());
-                evt.PersistentCallsList.Add(new PersistentCall(typeof(UltEventHolder).GetMethod("Invoke", new Type[0]), loopEvt));
-                if (node.FlowOutputs[0].Target != null)
-                    node.FlowOutputs[0].Target.Node.Book.CompileNode(loopEvt.Event, node.FlowOutputs[0].Target.Node, loopEvt.transform);
-                if (node.FlowOutputs[1].Target != null)
-                    node.FlowOutputs[1].Target.Node.Book.CompileNode(loopEvt.Event, node.FlowOutputs[1].Target.Node, loopEvt.transform);
-                break;
-            }
+                {
+                    // this is just a point in execution that gets called by the continue node.
+                    // so just a seperate ult-event
+                    var loopRoot = dataRoot.StoreTransform("While");
+                    loopRoot.gameObject.SetActive(true);
+                    var loopEvt = loopRoot.StoreComp<UltEventHolder>("Loop)#)#)");
+                    loopEvt.gameObject.SetActive(true);
+                    loopEvt.Event.FSetPCalls(new());
+                    var doneEvt = loopRoot.StoreComp<UltEventHolder>("Done");
+                    doneEvt.gameObject.SetActive(true);
+                    doneEvt.Event.FSetPCalls(new());
+                    evt.PersistentCallsList.Add(new PersistentCall(typeof(UltEventHolder).GetMethod("Invoke", new Type[0]), loopEvt));
+                    if (node.FlowOutputs[0].Target != null)
+                        node.FlowOutputs[0].Target.Node.Book.CompileNode(loopEvt.Event, node.FlowOutputs[0].Target.Node, loopEvt.transform);
+                    if (node.FlowOutputs[1].Target != null)
+                        node.FlowOutputs[1].Target.Node.Book.CompileNode(loopEvt.Event, node.FlowOutputs[1].Target.Node, loopEvt.transform);
+                    break;
+                }
             case "for":
                 {
                     // this is just a point in execution that gets called by the continue node;
@@ -176,33 +176,33 @@ public class LoopsCookBook : CookBook
                     break;
                 }
             case "continue":
-            { 
-                // find containing loop
-                Transform p = dataRoot.transform;
-                while (p != null && p.gameObject.name != "Loop)#)#)") // need a better way of doing this
-                    p = p.parent;
-                if (p == null) return; // user error lol
+                {
+                    // find containing loop
+                    Transform p = dataRoot.transform;
+                    while (p != null && p.gameObject.name != "Loop)#)#)") // need a better way of doing this
+                        p = p.parent;
+                    if (p == null) return; // user error lol
 
-                evt.PersistentCallsList.Add(new PersistentCall(typeof(UltEventHolder).GetMethod("Invoke", new Type[0]), p.GetComponent<UltEventHolder>()));
-                break;
-            }
+                    evt.PersistentCallsList.Add(new PersistentCall(typeof(UltEventHolder).GetMethod("Invoke", new Type[0]), p.GetComponent<UltEventHolder>()));
+                    break;
+                }
             case "break":
-            {
-                // find containing loop
-                Transform p = dataRoot.transform;
-                while (p != null && !p.gameObject.name.EndsWith("Loop)#)#)")) // need a better way of doing this
-                    p = p.parent;
-                if (p == null) return; // user error lol
+                {
+                    // find containing loop
+                    Transform p = dataRoot.transform;
+                    while (p != null && !p.gameObject.name.EndsWith("Loop)#)#)")) // need a better way of doing this
+                        p = p.parent;
+                    if (p == null) return; // user error lol
 
-                evt.PersistentCallsList.Add(new PersistentCall(typeof(UltEventHolder).GetMethod("Invoke", new Type[0]), p.parent.GetChild(1).GetComponent<UltEventHolder>()));
-                break;
-            }
+                    evt.PersistentCallsList.Add(new PersistentCall(typeof(UltEventHolder).GetMethod("Invoke", new Type[0]), p.parent.GetChild(1).GetComponent<UltEventHolder>()));
+                    break;
+                }
         }
     }
 
     public override void PostCompile(SerializedBowl bowl)
     {
-        
+
     }
 }
 #endif

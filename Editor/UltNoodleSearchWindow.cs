@@ -1,8 +1,8 @@
 #if UNITY_EDITOR
+using NoodledEvents;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NoodledEvents;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
@@ -49,7 +49,8 @@ public class UltNoodleSearchWindow : EditorWindow
         {
             if (edge.output.userData is not NoodleDataOutput dataOut) return Open(graphView, screenPos); // fallback to generic search
             return InternalOpen(graphView, screenPos, dataOut.Type);
-        } else
+        }
+        else
         {
             if (edge.input.userData is not NoodleDataInput dataIn) return Open(graphView, screenPos); // fallback to generic search
             return InternalOpen(graphView, screenPos, dataIn.Type, false);
@@ -297,10 +298,11 @@ public class UltNoodleSearchWindow : EditorWindow
         EditorApplication.update += newSearch;
         newSearch.Invoke();
     }
-    
+
     private VisualElement GetIncompleteListDisplay()
     {
-        var o = new Label() {
+        var o = new Label()
+        {
             text = "Press Enter for a Full Search! (...)"
         };
 

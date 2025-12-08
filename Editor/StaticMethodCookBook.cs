@@ -90,12 +90,12 @@ public class StaticMethodCookBook : CookBook
                             var pins = new List<Pin>() { new NodeDef.Pin("Done") };
 
                             if (meth.GetRetType() != typeof(void))
-                                pins.Add( new NodeDef.Pin(meth.ReturnType.GetFriendlyName(), meth.ReturnType) );
+                                pins.Add(new NodeDef.Pin(meth.ReturnType.GetFriendlyName(), meth.ReturnType));
 
                             var refparams = meth.GetParameters().Where(p => p.ParameterType.IsByRef);
-                            foreach(var refparam in refparams)
+                            foreach (var refparam in refparams)
                                 pins.Add(new Pin(refparam.GetParamName(), refparam.ParameterType));
-                            
+
 
                             return pins.ToArray();
                         },
@@ -111,7 +111,7 @@ public class StaticMethodCookBook : CookBook
         }));
         p.ContinueWith(t => completedCallback.Invoke());
     }
-    
+
     public override void CompileNode(UltEventBase evt, SerializedNode node, Transform dataRoot)
     {
         base.CompileNode(evt, node, dataRoot);
@@ -159,7 +159,8 @@ public class StaticMethodCookBook : CookBook
             if (@in.Source != null) // is connected
             {
                 new PendingConnection(@in.Source, evt, myCall, j).Connect(dataRoot);
-            } else
+            }
+            else
             {
                 @in.CompArg = myCall.PersistentArguments[j] = new PersistentArgument(meth.Parameters[j]);
 
@@ -219,7 +220,7 @@ public class StaticMethodCookBook : CookBook
                 }
             }
         }
-        
+
         if (evt.PersistentCallsList == null) evt.FSetPCalls(new List<PersistentCall>());
         evt.PersistentCallsList.Add(myCall);
         // calls have been added/linked;
@@ -263,9 +264,9 @@ public class StaticMethodCookBook : CookBook
         foreach (var t in relatives)
         {
             string tName = t.GetFriendlyName();
-            PropertyInfo[] props = t.GetProperties(UltEventUtils.AnyAccessBindings).Where(p=> (p.CanRead && p.GetMethod.IsStatic) || (p.CanWrite && p.SetMethod.IsStatic)).ToArray();
+            PropertyInfo[] props = t.GetProperties(UltEventUtils.AnyAccessBindings).Where(p => (p.CanRead && p.GetMethod.IsStatic) || (p.CanWrite && p.SetMethod.IsStatic)).ToArray();
             MethodInfo[] meths = t.GetMethods(UltEventUtils.AnyAccessBindings).Where(m => m.IsStatic && !props.Any(p => p.GetMethod == m || p.SetMethod == m)).ToArray();
-            
+
             foreach (var method in meths.Distinct())
             {
                 if (!MyDefs.TryGetValue(method, out NodeDef def)) continue;

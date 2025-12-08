@@ -1,15 +1,15 @@
 #if UNITY_EDITOR
+using NoodledEvents;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using System;
-using NoodledEvents;
-using UnityEditor.Experimental.GraphView;
-using UnityEngine.UIElements;
-using UnityEditor.UIElements;
-using UltEvents;
 using System.Linq;
+using UltEvents;
 using UnityEditor;
+using UnityEditor.Experimental.GraphView;
+using UnityEditor.UIElements;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 public class UltNoodleNodeView : Node
 {
@@ -208,7 +208,7 @@ public class UltNoodleNodeView : Node
                 Direction.Input,
                 Port.Capacity.Single,
                 typeof(object));
-            
+
             port.portName = string.IsNullOrEmpty(di.Name) ? di.Type?.Type.Name ?? "In" : di.Name;
             port.userData = di;
             port.tooltip = di.Type?.Type?.GetFriendlyName() ?? "Unknown";

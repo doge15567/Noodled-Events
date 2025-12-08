@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using UltEvents;
 using UnityEditor;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using static NoodledEvents.CookBook.NodeDef;
 
@@ -62,20 +61,21 @@ public class ObjectFieldCookBook : CookBook
                 }
                 progressCallback.Invoke(newDefs, (++i / (float)UltNoodleEditor.SearchableTypes.Length));
             }
-            catch (TypeLoadException) { };
-            
+            catch (TypeLoadException) { }
+            ;
+
         }));
-        
+
         p.ContinueWith(t => completedCallback.Invoke());
     }
-    
+
     public override void CompileNode(UltEventBase evt, SerializedNode node, Transform dataRoot)
     {
         base.CompileNode(evt, node, dataRoot);
         SerializedField field = JsonUtility.FromJson<SerializedField>(node.BookTag);
         evt.EnsurePCallList();
 
-        
+
         // So only 1 pcall needs to be changed for get/set
         // still will be 25~+ nodes tho :/
 
@@ -231,7 +231,7 @@ public class ObjectFieldCookBook : CookBook
             getSetValueMethod.PersistentArguments[2].ToRetVal(evt.PersistentCallsList.IndexOf(objObjArr2), typeof(Type[]));
             getSetValueMethod.PersistentArguments[3].ToRetVal(evt.PersistentCallsList.FindOrAddGetTyper(typeof(void)), typeof(Type));
             getSetValueMethod.PersistentArguments[4].Bool = false;
-            evt.PersistentCallsList.Add(getSetValueMethod); 
+            evt.PersistentCallsList.Add(getSetValueMethod);
 
             PersistentCall twoTargArr = new PersistentCall(typeof(Array).GetMethod("CreateInstance", new Type[] { typeof(Type), typeof(int) }), null);
             twoTargArr.PersistentArguments[0].ToRetVal(typeSysObj, typeof(Type));
@@ -332,7 +332,8 @@ public class ObjectFieldCookBook : CookBook
                 {
                     o.TryAdd(tName + "/Fields/" + field.FieldType.GetFriendlyName() + " " + field.Name.Replace('_', ' ') + "/Get", nodes.Item1);
                     o.TryAdd(tName + "/Fields/" + field.FieldType.GetFriendlyName() + " " + field.Name.Replace('_', ' ') + "/Set", nodes.Item2);
-                } else
+                }
+                else
                 {
                     o.TryAdd(tName + "/Static/Fields/" + field.FieldType.GetFriendlyName() + " " + field.Name.Replace('_', ' ') + "/Get", nodes.Item1);
                     o.TryAdd(tName + "/Static/Fields/" + field.FieldType.GetFriendlyName() + " " + field.Name.Replace('_', ' ') + "/Set", nodes.Item2);
@@ -355,7 +356,7 @@ public class ObjectFieldCookBook : CookBook
             else newNode.DataInputs[0].DefaultObject = oldNode.DataInputs[0].DefaultObject;
         }
     }
-    public override void PostCompile(SerializedBowl bowl) 
+    public override void PostCompile(SerializedBowl bowl)
     {
     }
 }

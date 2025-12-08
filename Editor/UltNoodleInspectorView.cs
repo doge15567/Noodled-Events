@@ -1,8 +1,8 @@
 #if UNITY_EDITOR
+using UltEvents;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEditor.UIElements;
-using UltEvents;
 
 public class UltNoodleInspectorView : VisualElement
 {

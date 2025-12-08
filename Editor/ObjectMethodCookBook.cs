@@ -39,7 +39,7 @@ public class ObjectMethodCookBook : CookBook
             cts.Cancel();
         };
 
-        var p = Task.Run(() => Parallel.ForEach<Type>(UltNoodleEditor.SearchableTypes, options,(t) =>
+        var p = Task.Run(() => Parallel.ForEach<Type>(UltNoodleEditor.SearchableTypes, options, (t) =>
         {
             try
             {
@@ -529,7 +529,7 @@ public class ObjectMethodCookBook : CookBook
 
                 if (refParamArrayIdx.Count > 0) // void + ref or ret + ref
                 {
-                    var arrayGetValueMeth = typeof(Array).GetMethod("GetValue",UltEventUtils.AnyAccessBindings,null,new Type[] { typeof(int) }, null);
+                    var arrayGetValueMeth = typeof(Array).GetMethod("GetValue", UltEventUtils.AnyAccessBindings, null, new Type[] { typeof(int) }, null);
                     var v = 0; // to not clone the array getvalue logic i use this to offset the data output node
                     if (meth.Method.GetReturnType() != typeof(void)) // ret + ref
                     {
@@ -540,7 +540,7 @@ public class ObjectMethodCookBook : CookBook
                     for (int i = 0; i < refParamArrayIdx.Count; i++)
                     {
                         var output = node.DataOutputs[i + v];
-                        if (output.Targets.Count > 0) 
+                        if (output.Targets.Count > 0)
                         {
                             var GetValueCallIdx = evt.PersistentCallsList.AddRunMethod
                             (
@@ -560,7 +560,7 @@ public class ObjectMethodCookBook : CookBook
                 else // ret only
                 {
                     node.DataOutputs[0].CompCall = invokeMethod;
-                    node.DataOutputs[0].CompEvt = evt; 
+                    node.DataOutputs[0].CompEvt = evt;
                 }
             }
 

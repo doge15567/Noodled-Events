@@ -85,7 +85,7 @@ namespace NoodledEvents
 
                                 TypeToUltFields[script.GetType()] = fields;
                             }
-                            
+
                             foreach (var ultField in fields)
                             {
                                 var evt = (UltEventBase)ultField.GetValue(script);

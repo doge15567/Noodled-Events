@@ -1088,7 +1088,7 @@ public class CommonsCookBook : CookBook
                     evt.PersistentCallsList.AddDebugLog("made delegate:");
                     evt.PersistentCallsList.AddDebugLog(delMade);
 
-                    
+
                     if (node.DataOutputs[0].Targets.Count > 0) // only add delegate to dict if the user wants to
                     {
                         evt.PersistentCallsList.AddDebugLog("making guid");

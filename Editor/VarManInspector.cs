@@ -82,8 +82,8 @@ namespace NoodledEvents.Assets.Noodled_Events
                 myMan.Vars = myMan.Vars.Append(@new).ToArray();
                 EditorUtility.SetDirty(myMan); PrefabUtility.RecordPrefabInstancePropertyModifications(myMan);
                 varNamer.value = "";
-                RegenList(); 
-            }; 
+                RegenList();
+            };
 
             var title = myInspector.Q<Label>("Title");
             myInspector.Q<ColorField>("FillSetting").RegisterValueChangedCallback(e => title.style.color = e.newValue);
@@ -171,7 +171,7 @@ namespace NoodledEvents.Assets.Noodled_Events
                             var t = new TextField("");
                             vfr.Add(t);
                             t.value = SData.DefaultStringValue;
-                            t.RegisterValueChangedCallback((e) => {SData.DefaultStringValue = e.newValue; AutoEnforce(); });
+                            t.RegisterValueChangedCallback((e) => { SData.DefaultStringValue = e.newValue; AutoEnforce(); });
                             break;
                         }
                     case UltEvents.PersistentArgumentType.Int:
@@ -179,7 +179,7 @@ namespace NoodledEvents.Assets.Noodled_Events
                             var t = new IntegerField("");
                             vfr.Add(t);
                             t.value = SData.DefaultIntValue;
-                            t.RegisterValueChangedCallback((e) => {SData.DefaultIntValue = e.newValue; AutoEnforce(); });
+                            t.RegisterValueChangedCallback((e) => { SData.DefaultIntValue = e.newValue; AutoEnforce(); });
                             break;
                         }
                     case UltEvents.PersistentArgumentType.Float:
@@ -187,7 +187,7 @@ namespace NoodledEvents.Assets.Noodled_Events
                             var t = new FloatField("");
                             vfr.Add(t);
                             t.value = SData.DefaultFloatValue;
-                            t.RegisterValueChangedCallback((e) => {SData.DefaultFloatValue = e.newValue; AutoEnforce(); });
+                            t.RegisterValueChangedCallback((e) => { SData.DefaultFloatValue = e.newValue; AutoEnforce(); });
                             break;
                         }
                     case UltEvents.PersistentArgumentType.Object:
@@ -196,7 +196,7 @@ namespace NoodledEvents.Assets.Noodled_Events
                             t.objectType = typeof(UnityEngine.Object);
                             vfr.Add(t);
                             t.value = SData.DefaultObject;
-                            t.RegisterValueChangedCallback((e) => {SData.DefaultObject = e.newValue; AutoEnforce(); });
+                            t.RegisterValueChangedCallback((e) => { SData.DefaultObject = e.newValue; AutoEnforce(); });
                             break;
                         }
                     default:
@@ -227,7 +227,7 @@ namespace NoodledEvents.Assets.Noodled_Events
                 if (myMan.AutoEnforce)
                     bt.style.display = DisplayStyle.None;
 
-                Action btAct = () => 
+                Action btAct = () =>
                 {
                     foreach (var bowl in myMan.GetComponentsInChildren<SerializedBowl>(true))
                     {
@@ -246,7 +246,7 @@ namespace NoodledEvents.Assets.Noodled_Events
                                         UltNoodleEditor.Editor.Bowls.FirstOrDefault(b => b.SerializedData == bowl)?.Validate();
                                 }
                         if (needsComp)
-                        bowl.Compile();
+                            bowl.Compile();
                     }
                 };
                 entry.Q<Button>("EnforceBT").clicked += btAct;
