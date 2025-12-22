@@ -20,8 +20,8 @@ public class ObjectMethodCookBook : CookBook
     {
         MyDefs.Clear();
 
-        var inlineUltswaps = EditorPrefs.GetBool("InlineUltswaps");
-        // This is bc unity calls do not work off-thread. When the wiki is rewritten it should be noted that node labels are only accurate to the settings that were set when generated.
+        var inlineUltswaps = true; //EditorPrefs.GetBool("InlineUltswaps"); // This is bc unity calls do not work off-thread. When the wiki is rewritten it should be noted that node labels are only accurate to the settings that were set when generated.
+        // bodge fix. It is prefered that UnityEngine.Object calls do not have the "Reflection " prefix and it is just assumed that if the node has an input to the target that it becomes reflection.
         int i = 0;
 
 

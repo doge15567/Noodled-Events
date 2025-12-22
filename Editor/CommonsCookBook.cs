@@ -163,13 +163,13 @@ public class CommonsCookBook : CookBook
 
         // Saved Sys.String vars
         allDefs.Add(new NodeDef(this, "vars.set_saved_string_var",
-            inputs: () => new[] { new Pin("Exec"), new Pin("Var Name", typeof(string), @const: true), new Pin("save data", typeof(string)) },
+            inputs: () => new[] { new Pin("Exec"), new Pin("Var Name", typeof(string), @const: true), new Pin("save data", typeof(object)) },
             outputs: () => new[] { new Pin("done") },
             bookTag: "set_saved_string_var"
             ));
         allDefs.Add(new NodeDef(this, "vars.get_saved_string_var",
                 inputs: () => new[] { new Pin("Exec"), new Pin("Var Name", typeof(string), @const: true) },
-                outputs: () => new[] { new Pin("done"), new Pin("save data", typeof(string)) },
+                outputs: () => new[] { new Pin("done"), new Pin("save data", typeof(object)) },
                 bookTag: "get_saved_string_var"));
         #endregion
 
