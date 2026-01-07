@@ -192,6 +192,10 @@ public class CommonsCookBook : CookBook
             inputs: () => new[] { new Pin("Create") },
             outputs: () => new[] { new Pin("On Created"), new Pin("DelegateID", typeof(string)), new Pin("Delegate", typeof(Delegate)), new Pin("On Triggered") },
             bookTag: "delegate0"));
+        allDefs.Add(new NodeDef(this, "delegates.Create_based_on_type",
+            inputs: () => new[] { new Pin("Create"), new Pin("Delegate Type", typeof(Type)) },
+            outputs: () => new[] { new Pin("On Created"), new Pin("DelegateID", typeof(string)), new Pin("Delegate", typeof(Delegate)), new Pin("On Triggered") },
+            bookTag: "delegate_dynamic"));
         for (int i = 1; i < 5; i++)
         {
             List<Pin> outs = new();
@@ -1024,6 +1028,25 @@ public class CommonsCookBook : CookBook
                             evtType = typeof(UltEvent<object, object, object, object>);
                             actionType = typeof(Action<,,,>);
                             break;
+                        case "delegate_dynamic":
+                            var x = node.DataInputs[0].DefaultStringValue;
+                            var delegateType = Type.GetType(x, true, true);
+                            var parameters = delegateType.GetMethod("Invoke") // Obvious in hindsight but come the fuck on why is there no other way to get this info and why isnt this documented on the pages about delegates????
+                                .GetParameters(); // the documentation for GetParameters details almost exactly this use case COME THE FUCK!!! ON!!!!!!!!!
+                            var pcount = parameters.Length;
+                            evtType = pcount switch // thanks ide! very cool.
+                            {
+                                0 => typeof(UltEvent),
+                                1 => typeof(UltEvent<object>),
+                                2 => typeof(UltEvent<object, object>),
+                                3 => typeof(UltEvent<object, object, object>),
+                                4 => typeof(UltEvent<object, object, object, object>),
+                                _ => throw new ArgumentOutOfRangeException("Delegate must have less than 4 parameters"),
+                            };
+                            actionType = delegateType;
+
+
+                            break;
                     }
 
                     evt.PersistentCallsList.AddDebugLog("Getting type:");
@@ -1031,7 +1054,7 @@ public class CommonsCookBook : CookBook
                     evt.PersistentCallsList.AddDebugLog("got!");
                     evt.PersistentCallsList.AddDebugLog(ultType);
 
-                    if (node.DataInputs.Length > 0)
+                    if (node.DataInputs.Length > 0 && node.BookTag != "delegate_dynamic")
                         actionType = actionType.MakeGenericType(node.DataInputs.Select(di => Type.GetType(di.DefaultStringValue)).ToArray());
 
                     evt.PersistentCallsList.AddDebugLog("creating floater:");
@@ -1372,6 +1395,36 @@ public class CommonsCookBook : CookBook
         if (nodeUI?.Node?.Name?.StartsWith("vars.") ?? false)
         {
             nodeUI.DataInputs?.First()?.SetEnabled(false);
+        }
+    }
+    public override void VerifyNodeDef(SerializedNode nodeDef)
+    {
+        if (nodeDef?.BookTag == "delegate_dynamic")
+        {
+            var x = nodeDef.DataInputs[0].DefaultStringValue;
+            if (string.IsNullOrWhiteSpace(x)) return;
+            var delegateType = Type.GetType(x, false, true);
+            if (delegateType == null)
+            {
+                Debug.Log("Ts case");
+                Array.Resize(ref nodeDef.DataOutputs, 2);
+                return;
+            }
+            var parameters = delegateType.GetMethod("Invoke")
+                .GetParameters();
+            if (nodeDef.DataOutputs.Length-2 != parameters.Length)
+            {
+                Debug.Log("oth");
+                Array.Resize(ref nodeDef.DataOutputs, 2);
+                foreach (var param in parameters)
+                    nodeDef.AddDataOut("Parameter ", param.ParameterType);
+            }
+            for (int i = 2; i < parameters.Length+2; i++)
+            {
+                Debug.Log(":3");
+                nodeDef.DataOutputs[i].Name = $"Parameter {i - 1}";
+                nodeDef.DataOutputs[i].Type = parameters[i - 2].ParameterType;
+            }
         }
     }
 }

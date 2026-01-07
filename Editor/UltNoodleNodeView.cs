@@ -285,6 +285,8 @@ public class UltNoodleNodeView : Node
         if (UltNoodleEditor.Editor == null || UltNoodleEditor.Editor.CurrentBowl == null)
             return;
 
+        Node?.Book?.VerifyNodeDef(Node);
+
         _varManVarOptions.Clear();
         var bowl = UltNoodleEditor.Editor.CurrentBowl;
         foreach (var type in Node.DataInputs.Select(i => i.Type.Type).Distinct())

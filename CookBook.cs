@@ -110,7 +110,7 @@ namespace NoodledEvents
 
         // ran when a node's UI connections get changed, for when we need dynamic titles or type hints.
         public virtual void VerifyNodeUI(UltNoodleNodeView nodeUI) { }
-
+        public virtual void VerifyNodeDef(SerializedNode nodeDef) { }
         public static PersistentCall MakeCall(string method)
         {
             var c = new PersistentCall();

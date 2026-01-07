@@ -471,13 +471,16 @@ public class ObjectMethodCookBook : CookBook
                     new PendingConnection(node.DataInputs[i + v].Source, evt, editorSetCall, 2).Connect(dataRoot);
                 else
                 {
-                    editorSetCall.PersistentArguments[2].FSetType(node.DataInputs[i + v].GetPCallType()).SafeSetValue(node.DataInputs[i + v].GetDefault());
+                    editorSetCall.PersistentArguments[2].FSetType(node.DataInputs[i + v].GetPCallType())
+                        .SafeSetValue(node.DataInputs[i + v].GetDefault());
                     if (p.ParameterType == typeof(Type))
                     {
                         node.DataInputs[i + v].CompEvt = evt;
                         node.DataInputs[i + v].CompCall = editorSetCall;
                         node.DataInputs[i + v].CompArg = editorSetCall.PersistentArguments[2];
                     }
+                    if (editorSetCall.PersistentArguments[2].Type == PersistentArgumentType.None) // automatic null /// I could also prevent the call from being created but then more logic would be needed in the case of ref vals
+                        editorSetCall.PersistentArguments[2].FSetType(PersistentArgumentType.Object);
                 }
 
                 evt.PersistentCallsList.Add(editorSetCall);
