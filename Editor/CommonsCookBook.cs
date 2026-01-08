@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using TMPro;
 using UltEvents;
+using UnityEditor;
 using UnityEngine;
 using static NoodledEvents.CookBook.NodeDef;
 
@@ -1079,11 +1080,7 @@ public class CommonsCookBook : CookBook
                             o.UseCompAsParam = true;
                         }
                     }
-
-                    // compile the non-floater
-                    var delNext = node.FlowOutputs[1].Target?.Node;
-                    if (delNext != null)
-                        delNext.Book.CompileNode(evtBase.Event, delNext, evtBase.transform);
+                    
 
                     evt.PersistentCallsList.AddDebugLog("copying from template to floater");
                     // copy PersistentCalls list from non-floater 2 floater
@@ -1152,9 +1149,14 @@ public class CommonsCookBook : CookBook
                     // now:
                     // - also add a node to fetch from assembly_resolve_in_progress
 
+                    // compile the non-floater
+                    var delNext = node.FlowOutputs[1].Target?.Node;
+                    if (delNext != null)
+                        delNext.Book.CompileNode(evtBase.Event, delNext, evtBase.transform);
+
                     // compile the remaining evt, post-del
                     node.DataOutputs[0].CompEvt = evt;
-                    node.DataOutputs[1].CompCall = evt.PersistentCallsList[delMade]; // delegate itself
+                    node.DataOutputs[1].CompCall = makeDel; // delegate itself
                     node.DataOutputs[1].CompEvt = evt;
 
                     var evtNext = node.FlowOutputs[0].Target?.Node;
@@ -1412,16 +1414,17 @@ public class CommonsCookBook : CookBook
             }
             var parameters = delegateType.GetMethod("Invoke")
                 .GetParameters();
-            if (nodeDef.DataOutputs.Length-2 != parameters.Length)
+            if (nodeDef.DataOutputs.Length-2 != parameters.Length || nodeDef.DataOutputs[1].Name != delegateType.Name)
             {
                 Debug.Log("oth");
+                nodeDef.DataOutputs[1].Name = delegateType.Name;
                 Array.Resize(ref nodeDef.DataOutputs, 2);
                 foreach (var param in parameters)
                     nodeDef.AddDataOut("Parameter ", param.ParameterType);
+                EditorApplication.delayCall += () => UltNoodleEditor.Editor.TreeView.PopulateView(UltNoodleEditor.Editor.CurrentBowl); 
             }
             for (int i = 2; i < parameters.Length+2; i++)
             {
-                Debug.Log(":3");
                 nodeDef.DataOutputs[i].Name = $"Parameter {i - 1}";
                 nodeDef.DataOutputs[i].Type = parameters[i - 2].ParameterType;
             }
