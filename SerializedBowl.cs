@@ -4,8 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UltEvents;
+using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace NoodledEvents
 {
@@ -177,6 +179,27 @@ namespace NoodledEvents
                 node.OnAfterDeserialize();
         }
 
+    }
+
+    [CustomEditor(typeof(SerializedBowl))]
+    public class EditorUltEventGUI : Editor
+    {
+        public override VisualElement CreateInspectorGUI()
+        {
+            var root = new VisualElement();
+            SerializedBowl behaviour = (SerializedBowl)target;
+            if (!PrefabUtility.IsPartOfPrefabAsset(behaviour.gameObject))
+            {
+                var invokebutton = new Button(
+                    () => UltNoodleEditor.Editor.SelectBowl( UltNoodleEditor.Editor.Bowls.FirstOrDefault(b => b.SerializedData == behaviour) )
+                    ) 
+                { text = "Select" };
+                root.Add(invokebutton);
+            }
+
+            UnityEditor.UIElements.InspectorElement.FillDefaultInspector(root, serializedObject, this);
+            return root;
+        }
     }
 }
 #endif

@@ -194,7 +194,7 @@ public class CommonsCookBook : CookBook
             outputs: () => new[] { new Pin("On Created"), new Pin("DelegateID", typeof(string)), new Pin("Delegate", typeof(Delegate)), new Pin("On Triggered") },
             bookTag: "delegate0"));
         allDefs.Add(new NodeDef(this, "delegates.Create_based_on_type",
-            inputs: () => new[] { new Pin("Create"), new Pin("Delegate Type", typeof(Type)) },
+            inputs: () => new[] { new Pin("Create"), new Pin("Delegate Type", typeof(Type), @const: true) },
             outputs: () => new[] { new Pin("On Created"), new Pin("DelegateID", typeof(string)), new Pin("Delegate", typeof(Delegate)), new Pin("On Triggered") },
             bookTag: "delegate_dynamic"));
         for (int i = 1; i < 5; i++)
@@ -1408,7 +1408,6 @@ public class CommonsCookBook : CookBook
             var delegateType = Type.GetType(x, false, true);
             if (delegateType == null)
             {
-                Debug.Log("Ts case");
                 Array.Resize(ref nodeDef.DataOutputs, 2);
                 return;
             }
@@ -1416,7 +1415,6 @@ public class CommonsCookBook : CookBook
                 .GetParameters();
             if (nodeDef.DataOutputs.Length-2 != parameters.Length || nodeDef.DataOutputs[1].Name != delegateType.Name)
             {
-                Debug.Log("oth");
                 nodeDef.DataOutputs[1].Name = delegateType.Name;
                 Array.Resize(ref nodeDef.DataOutputs, 2);
                 foreach (var param in parameters)
