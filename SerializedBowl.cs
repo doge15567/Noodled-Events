@@ -191,7 +191,11 @@ namespace NoodledEvents
             if (!PrefabUtility.IsPartOfPrefabAsset(behaviour.gameObject))
             {
                 var invokebutton = new Button(
-                    () => UltNoodleEditor.Editor.SelectBowl( UltNoodleEditor.Editor.Bowls.FirstOrDefault(b => b.SerializedData == behaviour) )
+                    () => 
+                    {
+                        if (!UltNoodleEditor.Editor) return;
+                        UltNoodleEditor.Editor.SelectBowl(UltNoodleEditor.Editor.Bowls?.FirstOrDefault(b => b.SerializedData == behaviour));
+                    }
                     ) 
                 { text = "Select" };
                 root.Add(invokebutton);
