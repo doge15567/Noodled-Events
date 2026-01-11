@@ -411,14 +411,14 @@ public class ObjectMethodCookBook : CookBook
         // die if attempting to compile a node with const null for instance targ
         if (!meth.Method.IsStatic)
         {
-            if (node.DataInputs[0].Source == null && !node.DataInputs[0].HasConstObjInput())
+            if (node.DataInputs[0].Source == null && !node.DataInputs[0].HasConstUObjInput() && node.DataInputs[0].Type != typeof(Type))
             {
                 throw new Exception("Attempted to compile instance node with no instance specified!");
             }
         }
 
         #region Reflection Based Method
-        if ((NeedsReflection(meth.Method, EditorPrefs.GetBool("InlineUltswaps")) && (!node.DataInputs[0].HasConstObjInput())) || meth.Method.IsStatic) // bonus retvals! // isStatic here bc im repurposing this func to handle statics with reference params
+        if ((NeedsReflection(meth.Method, EditorPrefs.GetBool("InlineUltswaps")) && (!node.DataInputs[0].HasConstUObjInput())) || meth.Method.IsStatic) // bonus retvals! // isStatic here bc im repurposing this func to handle statics with reference params
         {
             // UAHGAHGAUGUAAAAAAS
 
@@ -590,7 +590,7 @@ public class ObjectMethodCookBook : CookBook
         UltEventBase pre = evt;
 
         // if the source varies
-        if (!node.DataInputs[0].HasConstObjInput()) // Okay, for Ult-Swap-Caching: uhhh
+        if (!node.DataInputs[0].HasConstUObjInput()) // Okay, for Ult-Swap-Caching: uhhh
         {                                      // if the source node is an ult-swap head, we ref a template object (lets just use the src evt)
             // we need to json
             // make event for jsonning
@@ -685,7 +685,7 @@ public class ObjectMethodCookBook : CookBook
 
         evt.PersistentCallsList.Add(myCall);
 
-        if (!node.DataInputs[0].HasConstObjInput() && myCall.Target == null)
+        if (!node.DataInputs[0].HasConstUObjInput() && myCall.Target == null)
         {
             // if evt had data output, get data
             Component retValStore = null;
