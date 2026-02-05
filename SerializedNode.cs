@@ -404,7 +404,7 @@ namespace NoodledEvents
         }
 
         [NonSerialized] public NoodleDataOutput TrueSource;
-        public bool HasConstObjInput()
+        public bool HasConstUObjInput()
         {
             if (Source != null)
                 switch (Source.Node.NoadType)
@@ -440,8 +440,6 @@ namespace NoodledEvents
                         throw new NotImplementedException();
                 }
             if (DefaultObject)
-                return true;
-            if (Type == typeof(Type))
                 return true;
             return false;
         }
