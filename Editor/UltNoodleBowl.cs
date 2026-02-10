@@ -1,7 +1,7 @@
 #if UNITY_EDITOR
-using System.Linq;
 using NoodledEvents;
 using NoodledEvents.Assets.Noodled_Events;
+using System.Linq;
 using UltEvents;
 using UnityEditor;
 using UnityEngine;

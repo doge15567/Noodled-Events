@@ -8,9 +8,8 @@ using System.Linq;
 using System.Reflection;
 using UltEvents;
 using UnityEngine;
-using WebSocketSharp;
 
-    
+
 public static class UltNoodleRuntimeExtensions
 {
     private static FieldInfo s_methodGetSet = typeof(PersistentCall).GetField("_Method", UltEventUtils.AnyAccessBindings);

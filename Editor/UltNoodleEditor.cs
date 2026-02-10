@@ -16,7 +16,6 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
-using static PlasticPipe.PlasticProtocol.Messages.NegotiationCommand;
 
 public class UltNoodleEditor : EditorWindow
 {

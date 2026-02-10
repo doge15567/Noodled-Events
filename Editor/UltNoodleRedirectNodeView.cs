@@ -1,11 +1,10 @@
 #if UNITY_EDITOR
-using UnityEngine;
-using System;
 using NoodledEvents;
+using System;
+using System.Linq;
+using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
-using UnityEditor;
-using System.Linq;
 
 public class UltNoodleRedirectNodeView : UltNoodleNodeView
 {
