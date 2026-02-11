@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using UltEvents;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 using static NoodledEvents.CookBook.NodeDef;
 
 
@@ -294,6 +295,64 @@ public class StaticMethodCookBook : CookBook
             }
         }
         return o;
+    }
+
+    public override void VerifyNodeUI(UltNoodleNodeView nodeUI)
+    {
+        base.VerifyNodeUI(nodeUI);
+
+        var style = nodeUI.Q("node-border").style;
+        void SetColor(Color c)
+        {
+            style.borderBottomColor = c;
+            style.borderLeftColor = c;
+            style.borderRightColor = c;
+            style.borderTopColor = c;
+        }
+        try
+        {
+            SerializedMethod meth = JsonUtility.FromJson<SerializedMethod>(nodeUI.Node.BookTag);
+            if (meth.Method.DeclaringType.Namespace.StartsWith("System"))
+            {
+                if (meth.Method.DeclaringType.Namespace.Contains("Numerics"))
+                    SetColor(Color.red * .5f);
+                else
+                    SetColor(Color.blue * .5f);
+            } else if (meth.Method.DeclaringType == typeof(Vector3))
+                    SetColor(Color.blue * .5f);
+
+
+            var titleRoot = nodeUI.Q("title");
+
+            if (typeof(UnityEngine.Object).IsAssignableFrom(meth.Method.DeclaringType) && titleRoot[0].name != "Icon")
+            {
+                var icon = EditorGUIUtility.ObjectContent(null, meth.Method.DeclaringType)?.image;
+                if (icon != null)
+                {
+                    var img = new VisualElement();
+                    img.style.backgroundImage = (StyleBackground)icon;
+                    var t = nodeUI.Q("title");
+                    t.Add(img);
+                    img.SendToBack();
+                    img.name = "Icon";
+                    img.style.minWidth = 20;
+                    img.style.marginLeft = 5;
+                    img.style.marginTop = 8;
+                    img.style.maxHeight = 20;
+                    t[1].style.marginLeft = 2;
+                    t.style.justifyContent = Justify.FlexStart;
+                    var spacer = new VisualElement();
+                    spacer.style.flexGrow = 1;
+                    spacer.name = "spacer";
+                    t.Insert(2, spacer);
+                }
+            }
+        }
+        catch (Exception ex) 
+        {
+            Debug.LogError("[NoodledEvents]: Error Verifying node UI! \n Node Booktag: " + (nodeUI?.Node?.BookTag ?? "null"));
+            Debug.LogException(ex);
+        }
     }
 }
 #endif

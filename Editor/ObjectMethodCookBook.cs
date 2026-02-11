@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using UltEvents;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 using static NoodledEvents.CookBook.NodeDef;
 
 
@@ -933,21 +934,83 @@ public class ObjectMethodCookBook : CookBook
 
     public override void VerifyNodeUI(UltNoodleNodeView ui)
     {
-        if (((!ui?.Node?.BookTag?.StartsWith('{')) ?? true) || (ui?.Node?.FlowInputs?.Length ?? 0) == 0) return;
-        
-        MethodBase meth = JsonUtility.FromJson<SerializedMethod>(ui.Node.BookTag).Method;
-        bool mustBeReflection = !typeof(UnityEngine.Object).IsAssignableFrom(meth.DeclaringType)
-                         || meth.DeclaringType.ContainsGenericParameters  // ex: List<T> vs List<bool>
-                         || meth.ContainsGenericParameters // like GameObject.GetComponent<T>();
-                         || meth.GetParameters().Any(p => p.IsOut || p.ParameterType.IsByRef); // like Physics.Raycast(..., out HitInfo hits);
-        if (!mustBeReflection)
+        try
         {
-            var dataInput = ui.Node.DataInputs[0];
-            if (dataInput.Source == null) // no connection; is const.
-                ui.FlowInputs.First().portName = "Exec";
-            else ui.FlowInputs.First().portName = EditorPrefs.GetBool("InlineUltswaps") ? "UltSwap Exec" : "Reflection Exec";
+            var style = ui.Q("node-border").style;
+            void SetColor(Color c)
+            {
+                style.borderBottomColor = c;
+                style.borderLeftColor = c;
+                style.borderRightColor = c;
+                style.borderTopColor = c;
+            }
+            if (ui.Node.BookTag.StartsWith("{"))
+            {
+                MethodBase meth = JsonUtility.FromJson<SerializedMethod>(ui.Node.BookTag).Method;
+                if (meth.DeclaringType.Namespace.StartsWith("System"))
+                    SetColor(Color.blue * .5f);
+                else if (meth.DeclaringType == typeof(Vector3))
+                    SetColor(Color.blue * .5f);
+            } else
+            {
+                if (ui.Node.Name.StartsWith("flow"))
+                    SetColor(Color.white * .8f);
+            }
         }
-        else ui.FlowInputs.First().portName = "Reflection-Only Exec";
+        catch (Exception ex) 
+        {
+            Debug.LogError("[NoodledEvents]: Error Verifying node UI! \n Node Booktag: " + (ui?.Node?.BookTag ?? "null"));
+            Debug.LogException(ex);
+        }
+
+        if (((!ui?.Node?.BookTag?.StartsWith('{')) ?? true) || (ui?.Node?.FlowInputs?.Length ?? 0) == 0) return;
+        try
+        {
+            MethodBase meth = JsonUtility.FromJson<SerializedMethod>(ui.Node.BookTag).Method;
+            bool mustBeReflection = !typeof(UnityEngine.Object).IsAssignableFrom(meth.DeclaringType)
+                             || meth.DeclaringType.ContainsGenericParameters  // ex: List<T> vs List<bool>
+                             || meth.ContainsGenericParameters // like GameObject.GetComponent<T>();
+                             || meth.GetParameters().Any(p => p.IsOut || p.ParameterType.IsByRef); // like Physics.Raycast(..., out HitInfo hits);
+            if (!mustBeReflection)
+            {
+                var dataInput = ui.Node.DataInputs[0];
+                if (dataInput.Source == null) // no connection; is const.
+                    ui.FlowInputs.First().portName = "Exec";
+                else ui.FlowInputs.First().portName = EditorPrefs.GetBool("InlineUltswaps") ? "UltSwap Exec" : "Reflection Exec";
+            }
+            else ui.FlowInputs.First().portName = "Reflection-Only Exec";
+
+            var titleRoot = ui.Q("title");
+            
+            if (typeof(UnityEngine.Object).IsAssignableFrom(meth.DeclaringType) && titleRoot[0].name != "Icon")
+            {
+                var icon = EditorGUIUtility.ObjectContent(null, meth.DeclaringType)?.image;
+                if (icon != null) 
+                {
+                    var img = new VisualElement();
+                    img.style.backgroundImage = (StyleBackground)icon;
+                    var t = ui.Q("title");
+                    t.Add(img);
+                    img.SendToBack();
+                    img.name = "Icon";
+                    img.style.minWidth = 20;
+                    img.style.marginLeft = 5;
+                    img.style.marginTop = 8;
+                    img.style.maxHeight = 20;
+                    t[1].style.marginLeft = 2;
+                    t.style.justifyContent = Justify.FlexStart;
+                    var spacer = new VisualElement();
+                    spacer.style.flexGrow = 1;
+                    spacer.name = "spacer";
+                    t.Insert(2, spacer);
+                }
+            }
+        }
+        catch (Exception ex) 
+        {
+            Debug.LogError("[NoodledEvents]: Error Verifying node UI! \n Node Booktag: " + (ui?.Node?.BookTag ?? "null"));
+            Debug.LogException(ex);
+        }
     }
 }
 #endif

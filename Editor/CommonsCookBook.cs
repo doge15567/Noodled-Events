@@ -8,6 +8,7 @@ using TMPro;
 using UltEvents;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 using static NoodledEvents.CookBook.NodeDef;
 
 
@@ -1394,9 +1395,31 @@ public class CommonsCookBook : CookBook
 
     public override void VerifyNodeUI(UltNoodleNodeView nodeUI)
     {
-        if (nodeUI?.Node?.Name?.StartsWith("vars.") ?? false)
+        try
         {
-            nodeUI.DataInputs?.First()?.SetEnabled(false);
+            if (nodeUI?.Node?.Name?.StartsWith("vars.") ?? false)
+            {
+                nodeUI.DataInputs?.First()?.SetEnabled(false);
+            }
+
+            var style = nodeUI.Q("node-border").style;
+            void SetColor(Color c)
+            {
+                style.borderBottomColor = c;
+                style.borderLeftColor = c;
+                style.borderRightColor = c;
+                style.borderTopColor = c;
+            }
+
+            if (nodeUI.Node.Name.StartsWith("flow"))
+                SetColor(Color.white * .8f);
+            else if (nodeUI.Node.Name.StartsWith("math"))
+                SetColor(Color.blue * .5f);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError("[NoodledEvents]: Error Verifying node UI! \n Node Booktag: " + (nodeUI?.Node?.BookTag ?? "null"));
+            Debug.LogException(ex);
         }
     }
     public override void VerifyNodeDef(SerializedNode nodeDef)
