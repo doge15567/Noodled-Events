@@ -312,14 +312,18 @@ public class StaticMethodCookBook : CookBook
         try
         {
             SerializedMethod meth = JsonUtility.FromJson<SerializedMethod>(nodeUI.Node.BookTag);
-            if (meth.Method.DeclaringType.Namespace.StartsWith("System"))
-            {
-                if (meth.Method.DeclaringType.Namespace.Contains("Numerics"))
-                    SetColor(Color.red * .5f);
-                else
-                    SetColor(Color.blue * .5f);
-            } else if (meth.Method.DeclaringType == typeof(Vector3))
-                    SetColor(Color.blue * .5f);
+            if (meth != null)
+                if (meth.Method != null)
+                    if (meth.Method.DeclaringType != null)
+                        if (meth?.Method?.DeclaringType?.Namespace != null)
+                            if (meth.Method.DeclaringType.Namespace.StartsWith("System"))
+                            {
+                                if (meth.Method.DeclaringType.Namespace.Contains("Numerics"))
+                                    SetColor(Color.red * .5f);
+                                else
+                                    SetColor(Color.blue * .5f);
+                            } else if (meth.Method.DeclaringType == typeof(Vector3))
+                                    SetColor(Color.blue * .5f);
 
 
             var titleRoot = nodeUI.Q("title");
