@@ -145,6 +145,15 @@ public class UltNoodleSearchWindow : EditorWindow
         });
         _settingsMenu.Add(spcToggle);
 
+        Toggle showParamsToggle = new Toggle("Show Parameters");
+        showParamsToggle.value = EditorPrefs.GetBool("ShowParamsInSearch", false);
+        showParamsToggle.RegisterValueChangedCallback((evt) =>
+        {
+            EditorPrefs.SetBool("ShowParamsInSearch", evt.newValue);
+            SearchTypes(100); // refresh to update search text
+        });
+        _settingsMenu.Add(showParamsToggle);
+
         foreach (var cbType in UltNoodleEditor.AllBooks.Select(b => b.GetType()).Distinct())
         {
             var cbToggle = new Toggle(cbType.Name.Replace("CookBook", ""));

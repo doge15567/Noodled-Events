@@ -356,7 +356,7 @@ public class UltNoodleNodeView : Node
             }
 
             // only rebuild if we changed from const to varman or vice versa
-            if ((prev == "" && now != "") || (prev != "" && now == ""))
+            if (string.IsNullOrEmpty(prev) != string.IsNullOrEmpty(now))
                 RebuildConstantField(input);
         });
         dropdown.value = string.IsNullOrEmpty(input.EditorConstName) ? "" : input.EditorConstName;
@@ -544,10 +544,21 @@ public class UltNoodleNodeView : Node
         foreach (var port in _dataOutputs.Values) yield return port;
     }
 
-    public Port GetPortByName(string name, Direction dir)
+    public Port GetPortById(string id, Direction dir)
     {
         var search = dir == Direction.Input ? _flowInputs.Values.Concat(_dataInputs.Values) : _flowOutputs.Values.Concat(_dataOutputs.Values);
-        return search.FirstOrDefault(p => p.portName == name);
+        return search.FirstOrDefault(p =>
+        {
+            string portId = p?.userData switch
+            {
+                NoodleFlowOutput fo => fo.ID,
+                NoodleFlowInput fi => fi.ID,
+                NoodleDataOutput dout => dout.ID,
+                NoodleDataInput din => din.ID,
+                _ => null
+            };
+            return p != null && portId == id;
+        });
     }
 
     public void RebuildConstantField(NoodleDataInput input)
