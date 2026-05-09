@@ -7,6 +7,7 @@ using UltEvents;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace NoodledEvents
 {
@@ -48,7 +49,7 @@ namespace NoodledEvents
             get => (_getter ??= BowlEvtHolderType.Type.GetField(EventFieldPath, UltEventUtils.AnyAccessBindings))?.GetValue(EventHolder) as UltEventBase;
             set => (_getter ??= BowlEvtHolderType.Type.GetField(EventFieldPath, UltEventUtils.AnyAccessBindings))?.SetValue(EventHolder, value);
         }
-        
+
         public Action<string> PathChange = delegate { };
         public string Path => gameObject.name + "." + EventHolder.GetType().Name + "." + EventFieldPath + ".";
         private string _lastGobjName;
@@ -67,7 +68,7 @@ namespace NoodledEvents
         public Action<Vector2> PositionChanged = delegate { };
         Vector2 _lastSize;
         [SerializeField] Vector2 _size;
-        public Vector2 Size 
+        public Vector2 Size
         {
             get => _size;
             set
@@ -119,9 +120,9 @@ namespace NoodledEvents
             // remove old "bowl_generated" for pre 1.2.0 users
             if (LastGenerated == null)
                 LastGenerated = EventHolder.transform.Find("bowl_generated")?.gameObject;
-            if (LastGenerated != null) 
+            if (LastGenerated != null)
                 UnityEngine.Object.DestroyImmediate(LastGenerated);
-            
+
             LastGenerated = new GameObject(BowlName + "_generated");
             LastGenerated.transform.parent = EventHolder.transform;
 
@@ -189,6 +190,31 @@ namespace NoodledEvents
             bool withinSelected = Selection.transforms.Any(t => transform.IsChildOf(t));
 
             return withinSelected || directlySelected || !selectedBowlsOnly;
+        }
+    }
+
+    [CustomEditor(typeof(SerializedBowl))]
+    public class EditorUltEventGUI : Editor
+    {
+        public override VisualElement CreateInspectorGUI()
+        {
+            var root = new VisualElement();
+            SerializedBowl behaviour = (SerializedBowl)target;
+            if (!PrefabUtility.IsPartOfPrefabAsset(behaviour.gameObject))
+            {
+                var invokebutton = new Button(
+                    () => 
+                    {
+                        if (!UltNoodleEditor.Editor) return;
+                        UltNoodleEditor.Editor.SelectBowl(UltNoodleEditor.Editor.Bowls?.FirstOrDefault(b => b.SerializedData == behaviour));
+                    }
+                    ) 
+                { text = "Select" };
+                root.Add(invokebutton);
+            }
+
+            UnityEditor.UIElements.InspectorElement.FillDefaultInspector(root, serializedObject, this);
+            return root;
         }
     }
 }

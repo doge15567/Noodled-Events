@@ -604,11 +604,11 @@ public class UltNoodleTreeView : GraphView
             // data ports
             // shenanig
             bool tout = false;
-            bool tin  = false;
-            if (startPort.userData is NoodleDataOutput dout)  tout = true;
-            if (startPort.userData is NoodleDataInput  din)   tin = true;
-            if (endPort.userData   is NoodleDataOutput dout2) tout = true;
-            if (endPort.userData   is NoodleDataInput  din2)  tin = true;
+            bool tin = false;
+            if (startPort.userData is NoodleDataOutput dout) tout = true;
+            if (startPort.userData is NoodleDataInput din) tin = true;
+            if (endPort.userData is NoodleDataOutput dout2) tout = true;
+            if (endPort.userData is NoodleDataInput din2) tin = true;
             if (tout && tin)
             {
                 return true; // guess who just got inconvenienced lol

@@ -8,7 +8,7 @@ namespace NoodledEvents
     public class SerializedType
     {
         public SerializedType(Type type) => Type = type;
-        public Type Type 
+        public Type Type
         {
             get => t ??= Type.GetType(_assemblyTypeName, true, true);
             set
@@ -25,7 +25,8 @@ namespace NoodledEvents
             try
             {
                 return this.Type != null;
-            } catch(Exception)
+            }
+            catch (Exception)
             {
                 return false;
             }

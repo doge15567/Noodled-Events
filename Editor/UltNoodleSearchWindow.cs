@@ -48,8 +48,9 @@ public class UltNoodleSearchWindow : EditorWindow
         if (edge.output != null)
         {
             if (edge.output.userData is not NoodleDataOutput dataOut) return Open(graphView, screenPos); // fallback to generic search
-            return InternalOpen(graphView, screenPos, dataOut.Type, false);
-        } else
+            return InternalOpen(graphView, screenPos, dataOut.Type);
+        }
+        else
         {
             if (edge.input.userData is not NoodleDataInput dataIn) return Open(graphView, screenPos); // fallback to generic search
             return InternalOpen(graphView, screenPos, dataIn.Type, true);
@@ -308,10 +309,11 @@ public class UltNoodleSearchWindow : EditorWindow
         EditorApplication.update += newSearch;
         newSearch.Invoke();
     }
-    
+
     private VisualElement GetIncompleteListDisplay()
     {
-        var o = new Label() {
+        var o = new Label()
+        {
             text = "Press Enter for a Full Search! (...)"
         };
 

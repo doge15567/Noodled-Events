@@ -21,8 +21,7 @@ public class ObjectMethodCookBook : CookBook
     {
         MyDefs.Clear();
 
-        var inlineUltswaps = EditorPrefs.GetBool("InlineUltswaps");
-        // This is bc unity calls do not work off-thread. When the wiki is rewritten it should be noted that node labels are only accurate to the settings that were set when generated.
+        var inlineUltswaps = EditorPrefs.GetBool("InlineUltswaps"); // This is bc unity calls do not work off-thread.
         int i = 0;
 
 
@@ -40,7 +39,7 @@ public class ObjectMethodCookBook : CookBook
             cts.Cancel();
         };
 
-        var p = Task.Run(() => Parallel.ForEach<Type>(UltNoodleEditor.SearchableTypes, options,(t) =>
+        var p = Task.Run(() => Parallel.ForEach<Type>(UltNoodleEditor.SearchableTypes, options, (t) =>
         {
             try
             {
@@ -473,13 +472,16 @@ public class ObjectMethodCookBook : CookBook
                     new PendingConnection(node.DataInputs[i + v].Source, evt, editorSetCall, 2).Connect(dataRoot);
                 else
                 {
-                    editorSetCall.PersistentArguments[2].FSetType(node.DataInputs[i + v].GetPCallType()).SafeSetValue(node.DataInputs[i + v].GetDefault());
+                    editorSetCall.PersistentArguments[2].FSetType(node.DataInputs[i + v].GetPCallType())
+                        .SafeSetValue(node.DataInputs[i + v].GetDefault());
                     if (p.ParameterType == typeof(Type))
                     {
                         node.DataInputs[i + v].CompEvt = evt;
                         node.DataInputs[i + v].CompCall = editorSetCall;
                         node.DataInputs[i + v].CompArg = editorSetCall.PersistentArguments[2];
                     }
+                    if (editorSetCall.PersistentArguments[2].Type == PersistentArgumentType.None) // automatic null /// I could also prevent the call from being created but then more logic would be needed in the case of ref vals
+                        editorSetCall.PersistentArguments[2].FSetType(PersistentArgumentType.Object);
                 }
 
                 evt.PersistentCallsList.Add(editorSetCall);
@@ -538,7 +540,7 @@ public class ObjectMethodCookBook : CookBook
 
                 if (refParamArrayIdx.Count > 0) // void + ref or ret + ref
                 {
-                    var arrayGetValueMeth = typeof(Array).GetMethod("GetValue",UltEventUtils.AnyAccessBindings,null,new Type[] { typeof(int) }, null);
+                    var arrayGetValueMeth = typeof(Array).GetMethod("GetValue", UltEventUtils.AnyAccessBindings, null, new Type[] { typeof(int) }, null);
                     var v = 0; // to not clone the array getvalue logic i use this to offset the data output node
                     if (meth.Method.GetReturnType() != typeof(void)) // ret + ref
                     {
@@ -549,7 +551,7 @@ public class ObjectMethodCookBook : CookBook
                     for (int i = 0; i < refParamArrayIdx.Count; i++)
                     {
                         var output = node.DataOutputs[i + v];
-                        if (output.Targets.Count > 0) 
+                        if (output.Targets.Count > 0)
                         {
                             var GetValueCallIdx = evt.PersistentCallsList.AddRunMethod
                             (
@@ -569,7 +571,7 @@ public class ObjectMethodCookBook : CookBook
                 else // ret only
                 {
                     node.DataOutputs[0].CompCall = invokeMethod;
-                    node.DataOutputs[0].CompEvt = evt; 
+                    node.DataOutputs[0].CompEvt = evt;
                 }
             }
 

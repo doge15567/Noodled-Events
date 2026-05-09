@@ -147,7 +147,7 @@ public static class UltNoodleRuntimeExtensions
     public static string GetParamName(this ParameterInfo parameterInfo, bool brackets = false) // unsure if prefix should be capitalized or not
     {
         if (parameterInfo.IsIn)
-            return (brackets ? "[In] " : "in " )+ parameterInfo.Name;
+            return (brackets ? "[In] " : "in ") + parameterInfo.Name;
         else if (parameterInfo.IsOut)
             return (brackets ? "[Out] " : "out ") + parameterInfo.Name;
         else if (parameterInfo.ParameterType.IsByRef)
@@ -449,7 +449,7 @@ public static class UltNoodleRuntimeExtensions
         {
             var curParam = @params[i];
             if (curParam == null)
-                continue; 
+                continue;
             else if (curParam is int retVal)
                 list.AddArraySet(paramArr, retVal, i);
             else if (curParam is PersistentArgument pa)
@@ -481,7 +481,7 @@ public static class UltNoodleRuntimeExtensions
                 }
             }
         }
-            
+
 
         var invokeCall = new PersistentCall(MethodInfoInvoke, null);
         invokeCall.PersistentArguments[0].ToRetVal(methodIdx, typeof(MethodInfo));
@@ -670,7 +670,7 @@ public static class TypeTranslator
 
     public static string GetFriendlyName(this Type type)
     {
-        return type.GetFriendlyName(_defaultDictionary); 
+        return type.GetFriendlyName(_defaultDictionary);
     }
 }
 #endif

@@ -22,7 +22,7 @@ namespace NoodledEvents
         private static Assembly _xrAssmb;
         public static Assembly BLAssembly => _blAssmb ??= AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(ass => ass.FullName.StartsWith("Assembly-CSharp"));
         public static Assembly XRAssembly => _xrAssmb ??= AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(ass => ass.FullName.StartsWith("Unity.XR.Interaction.Toolkit"));
-        public static Type GetExtType(string name, Assembly ass = null) 
+        public static Type GetExtType(string name, Assembly ass = null)
         {
             ass ??= BLAssembly;
             if (ass == null)
@@ -39,7 +39,7 @@ namespace NoodledEvents
         protected static MethodInfo SetActive = typeof(GameObject).GetMethod("SetActive");
         protected static PropertyInfo GetSetLocPos = typeof(Transform).GetProperty("localPosition");
         protected static MethodInfo Translate = typeof(Transform).GetMethod("Translate", new Type[] { typeof(float), typeof(float), typeof(float) });
-        public virtual void CollectDefs(Action<IEnumerable<NodeDef>, float> progressCallback, Action completedCallback) 
+        public virtual void CollectDefs(Action<IEnumerable<NodeDef>, float> progressCallback, Action completedCallback)
         {
             completedCallback.Invoke();
         }
@@ -111,7 +111,7 @@ namespace NoodledEvents
 
         // ran when a node's UI connections get changed, for when we need dynamic titles or type hints.
         public virtual void VerifyNodeUI(UltNoodleNodeView nodeUI) { }
-
+        public virtual void VerifyNodeDef(SerializedNode nodeDef) { }
         public static PersistentCall MakeCall(string method)
         {
             var c = new PersistentCall();
@@ -126,9 +126,22 @@ namespace NoodledEvents
             => new PersistentCall(typeof(T).GetMethod(method, UltEventUtils.AnyAccessBindings, null, ts, null), obj);
         public static PersistentCall MakeCall<T>(string method, UnityEngine.Object obj = null)
             => new PersistentCall(typeof(T).GetMethod(method, UltEventUtils.AnyAccessBindings), obj);
+        public static PersistentCall MakeCall<T>(string method, UnityEngine.Object obj = null, params object[] args)
+        {
+            Type[] ts = new Type[args.Length];
+            for (int i = 0; i < args.Length; i++)
+                ts[i] = args[i].GetType();
+
+            var call = new PersistentCall(typeof(T).GetMethod(method, UltEventUtils.AnyAccessBindings, null, ts, null), obj);
+
+            for (int i = 0; i < args.Length; i++)
+                call.PersistentArguments[i].Value = args[i];
+
+            return call;
+        }
 
         public class PendingConnection // utility class to link pcalls, with support for cross-event data transfer
-        { 
+        {
             /// <summary>
             /// Super generic NoodleOut -> PersistentCallArgIn
             /// </summary>
@@ -136,7 +149,7 @@ namespace NoodledEvents
             /// <param name="targEvt"></param>
             /// <param name="targCall"></param>
             /// <param name="argIdx"></param>
-            public PendingConnection(NoodleDataOutput o, UltEventBase targEvt, PersistentCall targCall, int argIdx) 
+            public PendingConnection(NoodleDataOutput o, UltEventBase targEvt, PersistentCall targCall, int argIdx)
             {
                 TargEvent = targEvt; TargCall = targCall;
                 TargInwardType = targCall.Method.GetParameters()[argIdx].ParameterType; TargInput = argIdx;
@@ -208,7 +221,7 @@ namespace NoodledEvents
             public int TargInput; // the idx of the arg on the TargCall to set as Arg
             public void Connect(Transform dataRoot) // fyi this is called while the targcall is being constructed
             {
-                if (SourceEvent == null) 
+                if (SourceEvent == null)
                 {
                     // People dont typically have warnings on in the log
                     Debug.LogWarning("A data redirect node is connected to a node on the right but not the left!\n" +
@@ -235,7 +248,7 @@ namespace NoodledEvents
                     // for UnityEngine.Object, this is easy
                     // all the other types (int, float, color, bool) are todo.
 
-                        
+
                     Type transferredType = TargInwardType;
                     if (transferredType.IsAssignableFrom(SourceOutwardType))
                         transferredType = SourceOutwardType;
@@ -280,7 +293,7 @@ namespace NoodledEvents
 
                     // fail
                     Debug.Log("failed data transfer for " + TargInwardType);
-                    
+
                 }
             }
             private static PropertyInfo RatioGetSet => typeof(UnityEngine.UI.AspectRatioFitter)
@@ -288,12 +301,12 @@ namespace NoodledEvents
         }
         public class NodeDef
         {
-            public NodeDef(CookBook book, string name, Func<Pin[]> inputs, Func<Pin[]> outputs, Func<NodeDef, Button> searchItem) 
+            public NodeDef(CookBook book, string name, Func<Pin[]> inputs, Func<Pin[]> outputs, Func<NodeDef, Button> searchItem)
             {
                 CookBook = book; Name = name; Inputs = inputs?.Invoke() ?? new Pin[0]; Outputs = outputs?.Invoke() ?? new Pin[0];
                 createSearchItem = searchItem;
             }
-            public NodeDef(CookBook book, string name, Func<Pin[]> inputs, Func<Pin[]> outputs, string bookTag = "", string searchTextOverride = "", string tooltipOverride = "") : this(book, name, inputs, outputs, (def) => 
+            public NodeDef(CookBook book, string name, Func<Pin[]> inputs, Func<Pin[]> outputs, string bookTag = "", string searchTextOverride = "", string tooltipOverride = "") : this(book, name, inputs, outputs, (def) =>
                 {
                     var o = new UnityEngine.UIElements.Button(() =>
                     {
@@ -323,7 +336,8 @@ namespace NoodledEvents
                     o.text = searchTextOverride == string.Empty ? completeSearchText : searchTextOverride;
                     o.tooltip = tooltipOverride == string.Empty ? o.text : tooltipOverride;
                     return o;
-                }){ BookTag = bookTag; }
+                })
+            { BookTag = bookTag; }
 
             public string Name;
             public CookBook CookBook;
@@ -338,7 +352,7 @@ namespace NoodledEvents
             {
                 get
                 {
-                    if (_searchItem == null) 
+                    if (_searchItem == null)
                     {
                         _searchItem = createSearchItem.Invoke(this);
                         _searchItem.style.unityTextAlign = TextAnchor.MiddleLeft;

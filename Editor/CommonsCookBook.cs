@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using TMPro;
 using UltEvents;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 using static NoodledEvents.CookBook.NodeDef;
@@ -23,6 +24,12 @@ public class CommonsCookBook : CookBook
             inputs: () => new[] { new Pin("Exec"), new Pin("condition", typeof(bool)) },
             outputs: () => new[] { new Pin("true"), new Pin("false") },
             bookTag: "if"));
+
+        // flow.trycatch
+        allDefs.Add(new NodeDef(this, "flow.try_finally",
+            inputs: () => new[] { new Pin("Exec") },
+            outputs: () => new[] { new Pin("finally"), new Pin("try") },
+            bookTag: "flow_tryfinally"));
 
         // flow.redirect
         allDefs.Add(new NodeDef(this, "flow.redirect",
@@ -163,13 +170,13 @@ public class CommonsCookBook : CookBook
 
         // Saved Sys.String vars
         allDefs.Add(new NodeDef(this, "vars.set_saved_string_var",
-            inputs: () => new[] { new Pin("Exec"), new Pin("Var Name", typeof(string), @const: true), new Pin("save data", typeof(string)) },
+            inputs: () => new[] { new Pin("Exec"), new Pin("Var Name", typeof(string), @const: true), new Pin("save data", typeof(object)) },
             outputs: () => new[] { new Pin("done") },
             bookTag: "set_saved_string_var"
             ));
         allDefs.Add(new NodeDef(this, "vars.get_saved_string_var",
                 inputs: () => new[] { new Pin("Exec"), new Pin("Var Name", typeof(string), @const: true) },
-                outputs: () => new[] { new Pin("done"), new Pin("save data", typeof(string)) },
+                outputs: () => new[] { new Pin("done"), new Pin("save data", typeof(object)) },
                 bookTag: "get_saved_string_var"));
         #endregion
 
@@ -187,6 +194,10 @@ public class CommonsCookBook : CookBook
             inputs: () => new[] { new Pin("Create") },
             outputs: () => new[] { new Pin("On Created"), new Pin("DelegateID", typeof(string)), new Pin("Delegate", typeof(Delegate)), new Pin("On Triggered") },
             bookTag: "delegate0"));
+        allDefs.Add(new NodeDef(this, "delegates.Create_based_on_type",
+            inputs: () => new[] { new Pin("Create"), new Pin("Delegate Type", typeof(Type), @const: true) },
+            outputs: () => new[] { new Pin("On Created"), new Pin("DelegateID", typeof(string)), new Pin("Delegate", typeof(Delegate)), new Pin("On Triggered") },
+            bookTag: "delegate_dynamic"));
         for (int i = 1; i < 5; i++)
         {
             List<Pin> outs = new();
@@ -346,41 +357,9 @@ public class CommonsCookBook : CookBook
         switch (node.BookTag)
         {
             case "wait":
-                // first, we need to figure what data needs transfer
-                // i mean do we? PendingConnection handles this shit
-                /*
-                List<NoodleDataOutput> transfz = new List<NoodleDataOutput>();
-                bool IsBeforeWait(SerializedNode node)
-                {
-                    // if next node is Wait, ret true
-                    foreach (var flow in node.FlowOutputs)
-                    {
-                        if (flow.Target != null && flow.Target.Node == node)
-                            return true;
-                    }
-                    // else, run above again for next nodes
-                    // if next node finds it, ret true
-                    // else false
-                    foreach (var flow in node.FlowOutputs)
-                    {
-                        if (flow.Target != null && IsBeforeWait(flow.Target.Node))
-                            return true;
-                    }
-                    return false;
-                }
-                foreach (var descendent in node.GatherDescendants())
-                    foreach (var postWaitInput in descendent.DataInputs)
-                        if (postWaitInput.Source != null && IsBeforeWait(postWaitInput.Source.Node))
-                            transfz.Add(postWaitInput.Source);
-
-                transfz.Distinct();*/
 
                 // just make the evts and proceed under the root.
 
-
-                var immediateNext = node.FlowOutputs[0].Target?.Node;
-                if (immediateNext != null)
-                    immediateNext.Book.CompileNode(evt, immediateNext, dataRoot);
 
                 var slowNext = node.FlowOutputs[1].Target?.Node;
                 if (slowNext != null)
@@ -405,53 +384,59 @@ public class CommonsCookBook : CookBook
                         evt.PersistentCallsList.Add(startDelay2);
 
                         slowNext.Book.CompileNode(asyncEvt.Event, slowNext, asyncEvt.transform);
-                        return;
                     }
-
-                    Transform ats = dataRoot.Find("async templates");
-                    if (!ats) ats = dataRoot.StoreTransform("async templates");
-
-
-                    // okay so like this is supposed to be async
-                    // new, copied on run dataroot:
-                    var slowDataRoot = ats.StoreComp<LifeCycleEvents>("Async DataRoot");
-                    slowDataRoot.gameObject.SetActive(true); // so OnEnabled runs when cloned
-                    slowDataRoot.EnableEvent.EnsurePCallList();
-                    slowDataRoot.gameObject.AddComponent<LifeCycleEvtEditorRunner>();
-
-                    var delayedEvt = slowDataRoot.gameObject.AddComponent<DelayedUltEventHolder>();
-                    delayedEvt.Event.EnsurePCallList();
-
-                    var startDelay = new PersistentCall(typeof(DelayedUltEventHolder).GetMethod("Invoke", new Type[] { }), delayedEvt);
-                    slowDataRoot.EnableEvent.PersistentCallsList.Add(startDelay);
-
-                    slowNext.Book.CompileNode(delayedEvt.Event, slowNext, slowDataRoot.transform);
-
-                    // okay now we just need to insert cloning pcalls to original evt!
-                    // since PendingConnection naturally put compstoragers under slowDataRoot.transform :3
-
-                    // delay pin in functionality
-                    if (node.DataInputs[0].Source == null) delayedEvt.Delay = node.DataInputs[0].DefaultFloatValue;
                     else
                     {
-                        var setTimer = new PersistentCall(typeof(DelayedUltEventHolder).GetProperty("Delay").SetMethod, delayedEvt);
-                        new PendingConnection(node.DataInputs[0].Source, evt, setTimer, 0).Connect(dataRoot);
-                        evt.PersistentCallsList.Add(setTimer);
+                        Transform ats = dataRoot.Find("async templates");
+                        if (!ats) ats = dataRoot.StoreTransform("async templates");
+
+
+                        // okay so like this is supposed to be async
+                        // new, copied on run dataroot:
+                        var slowDataRoot = ats.StoreComp<LifeCycleEvents>("Async DataRoot");
+                        slowDataRoot.gameObject.SetActive(true); // so OnEnabled runs when cloned
+                        slowDataRoot.EnableEvent.EnsurePCallList();
+                        slowDataRoot.gameObject.AddComponent<LifeCycleEvtEditorRunner>();
+
+                        var delayedEvt = slowDataRoot.gameObject.AddComponent<DelayedUltEventHolder>();
+                        delayedEvt.Event.EnsurePCallList();
+
+                        var startDelay = new PersistentCall(typeof(DelayedUltEventHolder).GetMethod("Invoke", new Type[] { }), delayedEvt);
+                        slowDataRoot.EnableEvent.PersistentCallsList.Add(startDelay);
+
+                        slowNext.Book.CompileNode(delayedEvt.Event, slowNext, slowDataRoot.transform);
+
+                        // okay now we just need to insert cloning pcalls to original evt!
+                        // since PendingConnection naturally put compstoragers under slowDataRoot.transform :3
+
+                        // delay pin in functionality
+                        if (node.DataInputs[0].Source == null) delayedEvt.Delay = node.DataInputs[0].DefaultFloatValue;
+                        else
+                        {
+                            var setTimer = new PersistentCall(typeof(DelayedUltEventHolder).GetProperty("Delay").SetMethod, delayedEvt);
+                            new PendingConnection(node.DataInputs[0].Source, evt, setTimer, 0).Connect(dataRoot);
+                            evt.PersistentCallsList.Add(setTimer);
+                        }
+
+                        // cloning bs
+                        var cloneCall = new PersistentCall(typeof(UnityEngine.Object).GetMethod("Instantiate", new Type[] { typeof(UnityEngine.Object), typeof(Transform) }), null);
+                        cloneCall.PersistentArguments[0].FSetString(typeof(UnityEngine.Object).AssemblyQualifiedName).FSetType(PersistentArgumentType.Object).Object = slowDataRoot.gameObject;
+                        cloneCall.PersistentArguments[1].FSetString(typeof(UnityEngine.Transform).AssemblyQualifiedName).FSetType(PersistentArgumentType.Object);
+                        evt.PersistentCallsList.Add(cloneCall);
+
+                        // cleanup
+                        var delCall = new PersistentCall(typeof(UnityEngine.Object).GetMethod("DestroyImmediate", new Type[] { typeof(UnityEngine.Object) }), null);
+                        delCall.PersistentArguments[0].FSetType(PersistentArgumentType.Object).Object = slowDataRoot.gameObject;
+                        delayedEvt.Event.PersistentCallsList.Add(delCall);
                     }
-
-                    // cloning bs
-                    var cloneCall = new PersistentCall(typeof(UnityEngine.Object).GetMethod("Instantiate", new Type[] { typeof(UnityEngine.Object), typeof(Transform) }), null);
-                    cloneCall.PersistentArguments[0].FSetString(typeof(UnityEngine.Object).AssemblyQualifiedName).FSetType(PersistentArgumentType.Object).Object = slowDataRoot.gameObject;
-                    cloneCall.PersistentArguments[1].FSetString(typeof(UnityEngine.Transform).AssemblyQualifiedName).FSetType(PersistentArgumentType.Object);
-                    evt.PersistentCallsList.Add(cloneCall);
-
-                    // cleanup
-                    var delCall = new PersistentCall(typeof(UnityEngine.Object).GetMethod("DestroyImmediate", new Type[] { typeof(UnityEngine.Object) }), null);
-                    delCall.PersistentArguments[0].FSetType(PersistentArgumentType.Object).Object = slowDataRoot.gameObject;
-                    delayedEvt.Event.PersistentCallsList.Add(delCall);
-
                     // i can't believe how easy this one was
                 }
+
+
+                var onStartNext = node.FlowOutputs[0].Target?.Node;
+                if (onStartNext != null)
+                    onStartNext.Book.CompileNode(evt, onStartNext, dataRoot);
+
                 return;
             case "if":
                 // if statementtt :/
@@ -980,6 +965,25 @@ public class CommonsCookBook : CookBook
                         nextNode.Book.CompileNode(evt, nextNode, dataRoot);
                 }
                 break;
+            case "flow_tryfinally":
+                {
+                    var tryLCE = dataRoot.StoreComp<LifeCycleEvents>("try");
+                    tryLCE.gameObject.AddComponent<LifeCycleEvtEditorRunner>();
+                    tryLCE.EnableEvent = new();
+                    tryLCE.EnableEvent.EnsurePCallList();
+
+                    evt.PersistentCallsList.Add(MakeCall<GameObject>("SetActive", tryLCE.gameObject, true));
+                    evt.PersistentCallsList.Add(MakeCall<GameObject>("SetActive", tryLCE.gameObject, false));
+
+                    var next = node.FlowOutputs[0];
+                    if (next.Target != null)
+                        next.Target.Node.Book.CompileNode(evt, next.Target.Node, dataRoot);
+                    next = node.FlowOutputs[1];
+                    if (next.Target != null)
+                        next.Target.Node.Book.CompileNode(tryLCE.EnableEvent, next.Target.Node, dataRoot);
+
+                    break;
+                }
             default:
                 if (node.BookTag.Contains("_scene_") && node.BookTag.EndsWith("_var"))
                 {
@@ -1026,6 +1030,25 @@ public class CommonsCookBook : CookBook
                             evtType = typeof(UltEvent<object, object, object, object>);
                             actionType = typeof(Action<,,,>);
                             break;
+                        case "delegate_dynamic":
+                            var x = node.DataInputs[0].DefaultStringValue;
+                            var delegateType = Type.GetType(x, true, true);
+                            var parameters = delegateType.GetMethod("Invoke") // Obvious in hindsight but come the fuck on why is there no other way to get this info and why isnt this documented on the pages about delegates????
+                                .GetParameters(); // the documentation for GetParameters details almost exactly this use case COME THE FUCK!!! ON!!!!!!!!!
+                            var pcount = parameters.Length;
+                            evtType = pcount switch // thanks ide! very cool.
+                            {
+                                0 => typeof(UltEvent),
+                                1 => typeof(UltEvent<object>),
+                                2 => typeof(UltEvent<object, object>),
+                                3 => typeof(UltEvent<object, object, object>),
+                                4 => typeof(UltEvent<object, object, object, object>),
+                                _ => throw new ArgumentOutOfRangeException("Delegate must have less than 4 parameters"),
+                            };
+                            actionType = delegateType;
+
+
+                            break;
                     }
 
                     evt.PersistentCallsList.AddDebugLog("Getting type:");
@@ -1033,7 +1056,7 @@ public class CommonsCookBook : CookBook
                     evt.PersistentCallsList.AddDebugLog("got!");
                     evt.PersistentCallsList.AddDebugLog(ultType);
 
-                    if (node.DataInputs.Length > 0)
+                    if (node.DataInputs.Length > 0 && node.BookTag != "delegate_dynamic")
                         actionType = actionType.MakeGenericType(node.DataInputs.Select(di => Type.GetType(di.DefaultStringValue)).ToArray());
 
                     evt.PersistentCallsList.AddDebugLog("creating floater:");
@@ -1058,11 +1081,7 @@ public class CommonsCookBook : CookBook
                             o.UseCompAsParam = true;
                         }
                     }
-
-                    // compile the non-floater
-                    var delNext = node.FlowOutputs[1].Target?.Node;
-                    if (delNext != null)
-                        delNext.Book.CompileNode(evtBase.Event, delNext, evtBase.transform);
+                    
 
                     evt.PersistentCallsList.AddDebugLog("copying from template to floater");
                     // copy PersistentCalls list from non-floater 2 floater
@@ -1095,7 +1114,7 @@ public class CommonsCookBook : CookBook
                     evt.PersistentCallsList.AddDebugLog("made delegate:");
                     evt.PersistentCallsList.AddDebugLog(delMade);
 
-                    
+
                     if (node.DataOutputs[0].Targets.Count > 0) // only add delegate to dict if the user wants to
                     {
                         evt.PersistentCallsList.AddDebugLog("making guid");
@@ -1131,9 +1150,14 @@ public class CommonsCookBook : CookBook
                     // now:
                     // - also add a node to fetch from assembly_resolve_in_progress
 
+                    // compile the non-floater
+                    var delNext = node.FlowOutputs[1].Target?.Node;
+                    if (delNext != null)
+                        delNext.Book.CompileNode(evtBase.Event, delNext, evtBase.transform);
+
                     // compile the remaining evt, post-del
                     node.DataOutputs[0].CompEvt = evt;
-                    node.DataOutputs[1].CompCall = evt.PersistentCallsList[delMade]; // delegate itself
+                    node.DataOutputs[1].CompCall = makeDel; // delegate itself
                     node.DataOutputs[1].CompEvt = evt;
 
                     var evtNext = node.FlowOutputs[0].Target?.Node;
@@ -1400,6 +1424,35 @@ public class CommonsCookBook : CookBook
         {
             Debug.LogError("[NoodledEvents]: Error Verifying node UI! \n Node Booktag: " + (nodeUI?.Node?.BookTag ?? "null"));
             Debug.LogException(ex);
+        }
+    }
+    public override void VerifyNodeDef(SerializedNode nodeDef)
+    {
+        if (nodeDef?.BookTag == "delegate_dynamic")
+        {
+            var x = nodeDef.DataInputs[0].DefaultStringValue;
+            if (string.IsNullOrWhiteSpace(x)) return;
+            var delegateType = Type.GetType(x, false, true);
+            if (delegateType == null)
+            {
+                Array.Resize(ref nodeDef.DataOutputs, 2);
+                return;
+            }
+            var parameters = delegateType.GetMethod("Invoke")
+                .GetParameters();
+            if (nodeDef.DataOutputs.Length-2 != parameters.Length || nodeDef.DataOutputs[1].Name != delegateType.Name)
+            {
+                nodeDef.DataOutputs[1].Name = delegateType.Name;
+                Array.Resize(ref nodeDef.DataOutputs, 2);
+                foreach (var param in parameters)
+                    nodeDef.AddDataOut("Parameter ", param.ParameterType);
+                EditorApplication.delayCall += () => UltNoodleEditor.Editor.TreeView.PopulateView(UltNoodleEditor.Editor.CurrentBowl); 
+            }
+            for (int i = 2; i < parameters.Length+2; i++)
+            {
+                nodeDef.DataOutputs[i].Name = $"Parameter {i - 1}";
+                nodeDef.DataOutputs[i].Type = parameters[i - 2].ParameterType;
+            }
         }
     }
 }

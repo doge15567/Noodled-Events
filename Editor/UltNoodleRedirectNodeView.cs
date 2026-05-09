@@ -20,7 +20,7 @@ public class UltNoodleRedirectNodeView : UltNoodleNodeView
         CreateDataPorts();
 
         RegisterCallback<MouseDownEvent>(OnMouseDown);
-        
+
         titleContainer.RemoveFromHierarchy();
     }
 
@@ -93,7 +93,7 @@ public class UltNoodleRedirectNodeView : UltNoodleNodeView
             port.portName = "";
             port.userData = dout;
             port.portColor = new(0.5176f, 0.8941f, 0.9059f);
-            
+
             var listener = new UltNoodleEdgeConnectorListener(UltNoodleEditor.Editor.TreeView);
             var connector = new EdgeConnector<Edge>(listener);
             port.AddManipulator(connector);

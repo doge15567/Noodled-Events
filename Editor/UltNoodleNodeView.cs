@@ -216,7 +216,7 @@ public class UltNoodleNodeView : Node
                 Direction.Input,
                 Port.Capacity.Single,
                 typeof(object));
-            
+
             port.portName = string.IsNullOrEmpty(di.Name) ? di.Type?.Type.Name ?? "In" : di.Name;
             port.userData = di;
             port.tooltip = di.Type?.Type?.GetFriendlyName() ?? "Unknown";
@@ -284,6 +284,8 @@ public class UltNoodleNodeView : Node
     {
         if (UltNoodleEditor.Editor == null || UltNoodleEditor.Editor.CurrentBowl == null)
             return;
+
+        Node?.Book?.VerifyNodeDef(Node);
 
         _varManVarOptions.Clear();
         var bowl = UltNoodleEditor.Editor.CurrentBowl;
