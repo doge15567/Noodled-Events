@@ -5,7 +5,6 @@ using System.Linq;
 using UltEvents;
 using UnityEditor;
 using UnityEditor.UIElements;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace NoodledEvents.Assets.Noodled_Events
@@ -20,30 +19,6 @@ namespace NoodledEvents.Assets.Noodled_Events
         private bool _settings;
         // List of "UI_ListElement", which handles modifying & applying vars
         public ScrollView VarList;
-        
-        private Dictionary<PersistentArgumentType, Type> Typz = new Dictionary<PersistentArgumentType, Type>()
-        {
-            { PersistentArgumentType.Int, typeof(int)},
-            { PersistentArgumentType.Float, typeof(float)},
-            { PersistentArgumentType.Bool, typeof(bool) },
-            { PersistentArgumentType.String, typeof(string) },
-            { PersistentArgumentType.Object, typeof(UnityEngine.Object) },
-            { PersistentArgumentType.Vector2, typeof(Vector2) },
-            { PersistentArgumentType.Vector3, typeof(Vector3) },
-            { PersistentArgumentType.Color, typeof(Color) },
-        };
-        private Dictionary<string, PersistentArgumentType> TypeNames = new Dictionary<string, PersistentArgumentType>()
-        {
-            { "int", PersistentArgumentType.Int },
-            { "float", PersistentArgumentType.Float },
-            { "bool", PersistentArgumentType.Bool },
-            { "string", PersistentArgumentType.String },
-            { "obj", PersistentArgumentType.Object },
-            { "vector2", PersistentArgumentType.Vector2 },
-            { "vector3", PersistentArgumentType.Vector3 },
-            { "color", PersistentArgumentType.Color },
-        };
-
         public override VisualElement CreateInspectorGUI()
         {
             myMan = (VarMan)target;
@@ -54,25 +29,27 @@ namespace NoodledEvents.Assets.Noodled_Events
 
             var varNamer = myInspector.Q<TextField>("NewVarName");
 
-            foreach (var pair in TypeNames)
+            myInspector.Q<Button>("bool").clicked += () =>
             {
-                myInspector.Q<Button>(pair.Key).clicked += () =>
-                {
-                    if (myMan.Vars.Any(v => v.Name == varNamer.value))
-                    {
-                        EditorUtility.DisplayDialog("Duplicate Var Name", $"A variable with the name \"{varNamer.value}\" already exists! Please choose a different name.", "OK");
-                        return;
-                    }
-
-                    var @new = new NoodleDataInput();
-                    @new.Name = varNamer.value;
-                    @new.ConstInput = pair.Value;
+                var @new = new NoodleDataInput();
+                @new.Name = varNamer.value;
+                @new.ConstInput = PersistentArgumentType.Bool;
 
                 myMan.Vars = myMan.Vars.Append(@new).ToArray();
                 EditorUtility.SetDirty(myMan); PrefabUtility.RecordPrefabInstancePropertyModifications(myMan);
                 varNamer.value = "";
                 RegenList();
-                }
+            };
+            myInspector.Q<Button>("string").clicked += () =>
+            {
+                var @new = new NoodleDataInput();
+                @new.Name = varNamer.value;
+                @new.ConstInput = PersistentArgumentType.String;
+
+                myMan.Vars = myMan.Vars.Append(@new).ToArray();
+                EditorUtility.SetDirty(myMan); PrefabUtility.RecordPrefabInstancePropertyModifications(myMan);
+                varNamer.value = "";
+                RegenList();
             };
             myInspector.Q<Button>("float").clicked += () =>
             {
@@ -157,21 +134,20 @@ namespace NoodledEvents.Assets.Noodled_Events
                 UltNoodleEditor.Editor?.GetType().GetMethod("OnFocus", UltEventUtils.AnyAccessBindings).Invoke(UltNoodleEditor.Editor, new object[] { });
             });
 
-            myInspector.Q<Button>("EnforceAllBT").clicked += () =>
-            {
-                foreach (var varrr in myMan.Vars)
-                    EnforceVar(varrr);
-            };
-
             RegenList();
             // Add a simple label.
             // Return the finished Inspector UI.
             return myInspector;
         }
-
+        private void AutoEnforce()
+        {
+            if (myMan.AutoEnforce)
+                foreach (var act in _forceClickers.Values)
+                    act.Invoke();
+        }
         public void RegenList()
         {
-            VarList.Clear();
+            VarList.Clear(); _forceClickers.Clear();
             foreach (var varrr in myMan.Vars)
             {
                 var SData = varrr;
@@ -187,7 +163,7 @@ namespace NoodledEvents.Assets.Noodled_Events
                             var t = new Toggle("");
                             vfr.Add(t);
                             t.value = SData.DefaultBoolValue;
-                            t.RegisterValueChangedCallback((e) => { SData.DefaultBoolValue = e.newValue; EnforceVar(SData, true); });
+                            t.RegisterValueChangedCallback((e) => { SData.DefaultBoolValue = e.newValue; AutoEnforce(); });
                             break;
                         }
                     case UltEvents.PersistentArgumentType.String:
@@ -273,35 +249,20 @@ namespace NoodledEvents.Assets.Noodled_Events
                             bowl.Compile();
                     }
                 };
+                entry.Q<Button>("EnforceBT").clicked += btAct;
+                _forceClickers[bt] = btAct;
                 VarList.Add(entry);
             }
         }
-
-        private void EnforceVar(NoodleDataInput nDi, bool checkAuto = false)
+        private Dictionary<Button, Action> _forceClickers = new();
+        private Dictionary<PersistentArgumentType, Type> Typz = new Dictionary<PersistentArgumentType, Type>()
         {
-            if (checkAuto && !myMan.AutoEnforce)
-                return;
-
-            foreach (var bowl in myMan.GetComponentsInChildren<SerializedBowl>(true))
-            {
-                bool needsComp = false;
-                foreach (var node in bowl.NodeDatas)
-                    foreach (var input in node.DataInputs)
-                        if (input.Source == null && input.EditorConstName == nDi.Name && input.Type.Type == nDi.Type.Type)
-                        {
-                            input.ValDefs = nDi.ValDefs;
-                            input.DefaultStringValue = nDi.DefaultStringValue;
-                            input.DefaultObject = nDi.DefaultObject;
-                            needsComp = true;
-                            EditorUtility.SetDirty(bowl);
-                            PrefabUtility.RecordPrefabInstancePropertyModifications(bowl);
-                            if (!PrefabUtility.IsPartOfAnyPrefab(bowl) && UltNoodleEditor.Editor != null)
-                                UltNoodleEditor.Editor.Bowls.FirstOrDefault(b => b.SerializedData == bowl)?.Validate();
-                        }
-                if (needsComp)
-                    bowl.Compile();
-            }
-        }
+            { PersistentArgumentType.Int, typeof(int)},
+            { PersistentArgumentType.Float, typeof(float)},
+            { PersistentArgumentType.Bool, typeof(bool) },
+            { PersistentArgumentType.String, typeof(string) },
+            { PersistentArgumentType.Object, typeof(UnityEngine.Object) }
+        };
     }
 }
 
